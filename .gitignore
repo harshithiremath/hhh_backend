@@ -1,6 +1,8 @@
 # dependencies
 /node_modules
 
+/hhh_backend
+
 # front-end folder
 /hhh
 
