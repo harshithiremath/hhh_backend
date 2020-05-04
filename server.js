@@ -9,7 +9,11 @@ app.use(bodyParser.json());
 
 // parse requests of content-type: application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.get("/hhh",(req,res)=>{
+  res.status(418).send({
+    message: "hello"
+  })
+})
 app.get("/", (req, res) => {
   res.json({ message: "Welcome to hhh test application." });
 });

@@ -9,15 +9,29 @@ const User = function (user) {
 };
 
 User.create = (newUser, result) => {
-  sql.query("INSERT INTO users SET ?", newUser, (err, res) => {
-    if (err) {
-      console.log("error: ", err);
-      result(err, null);
+  sql.query("SELECT * FROM users WHERE email= ?",newUser.email,(err,res)=>{
+    if (err){
+      console.log('error:',err);
+      result(err,null);
       return;
     }
-
-    console.log("created user: ", { id: res.insertId });
-    result(null, { id: res.insertId, first_name: newUser.first_name });
+    if (res.length){
+      console.log("Users credentials already present in database");
+      result({message:'User present in database'},null);
+      return;
+    }
+    else if(!res.length){  
+      sql.query("INSERT INTO users SET ?", newUser, (err, res) => {
+        if (err) {
+          console.log("error: ", err);
+          result(err, null);
+          return;
+        }
+      
+        console.log("created user: ", { id: res.insertId });
+        result(null, { id: res.insertId, first_name: newUser.first_name });
+      });
+    }
   });
 };
 
