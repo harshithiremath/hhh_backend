@@ -58,9 +58,12 @@ app.post("/checkout/tickets",(req,res)=>{
 })
 app.post("/cart",(res,req)=>{
   data=req.body
-  //data.user_id
+  //details:(Object conatining essential credentials)
+  //data.details.user_id
+  //data.details.merch_id
+  //data.details.quantity
   if(data.message==="insert"){
-    connection.query("select quantity from merchandise_cart where user_id=? and merch_id= ?",[data.user_id,data.merch_id],(err,res)=>{
+    connection.query("select quantity from merchandise_cart where user_id=? and merch_id= ?",[data.details.user_id,data.details.merch_id],(err,res)=>{
       if(err) throw err;
       if(!res){
         connection.query("insert into merchandise_cart(user_id,merch_id,quantity) values ?",data.details,(err,rws)=>{
@@ -96,7 +99,29 @@ app.post("/cart",(res,req)=>{
   }
 })
 
-
+app.post("/checkout/merch",(req,res)=>{
+  data=req.body;
+  dtails=data.details;
+  //details must be an array of arrays in which the inner array must have the values in order 
+  //details.user_id
+  //details.merch_id
+  //details.quantity
+  //details.timestamp
+  connection.query("insert into orders_list values ?",[dtails],(err,rows)=>{
+    if (err) throw err;
+    if(rows.affectedRows > 0 ){
+      connection.query("insert into merchandise_order(user_id,price,time_purchased) select p.user_id,sum(m.price*p.quantity) as price,p.timestamp from merch m,orders_list p where m.merch_id=p.merch_id and p.user_id=? and p.timestamp =?",[dtails.user_id,dtails.timestamp],(err,result)=>{
+        if (err) throw err;
+        if(result.affectedRows>0){
+          res.send(connection.query("select * from merchandise_order where user_id=? and time_purchased=?",[dtails.user_id,dtails.timestamp],(err,results)=>{
+            if (err) throw err;
+            if(results) console.log("Order placed ");
+          }))
+        }
+      })
+    }
+  })
+})
 require("./app/routes/tours")(app);
 app.listen(5000, () => {
   console.log("Server is running on port 5000.");
