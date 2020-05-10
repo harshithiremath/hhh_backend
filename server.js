@@ -19,6 +19,7 @@ app.get("/", (req, res) => {
 require("./app/routes/user.routes.js")(app);
 // require("./app/routes/tour.routes")(app);
 
+//! route
 app.get("/tours", (req, res) => {
   connection.query("SELECT * FROM tours", function (err, results, fields) {
     if (err) {
@@ -28,6 +29,8 @@ app.get("/tours", (req, res) => {
     }
   });
 });
+
+//! route
 app.get("/merch", (req, res) => {
   //! This route is used both for getting the details of all the merchandise
   //! and of a single merchandise whose merch_id is passed in query object of HTTP GET request
@@ -54,6 +57,8 @@ app.get("/merch", (req, res) => {
     });
   }
 });
+
+//! route
 app.get("/orders", (req, res) => {
   const user = req.query.user;
   // console.log(req);
@@ -84,6 +89,8 @@ app.get("/orders", (req, res) => {
     }
   });
 });
+
+//! route
 app.post("/checkout/tickets", (req, res) => {
   details = req.body.details;
   //details.user_id
@@ -92,14 +99,14 @@ app.post("/checkout/tickets", (req, res) => {
   //details.price
   //details.time
   connection.query(
-    "select balance from wallet where user_id= ? and balance > ?",
+    "SELECT balance FROM wallet WHERE user_id= ? and balance > ?",
     [details.user_id, details.price],
     (error, row) => {
       if (error) throw err;
       if (row) {
         balance = row[0].balance || row[0];
         connection.query(
-          "insert into ticket_purchase (user_id,ticket_quantity,tour_id, price, time_purchased) values ? ",
+          "INSERT INTO ticket_purchase (user_id,ticket_quantity, tour_id, price, time_purchased) values ? ",
           details,
           (err, result) => {
             if (err) throw err;
@@ -107,7 +114,7 @@ app.post("/checkout/tickets", (req, res) => {
             res.send(result);
             balance -= details.price;
             connection.query(
-              "update wallet set balance= ? where user_id= ",
+              "UPDATE wallet SET balance= ? WHERE user_id= ",
               [balanace, details.user_id],
               (err, ress) => {
                 if (err) throw err;
@@ -124,6 +131,8 @@ app.post("/checkout/tickets", (req, res) => {
     }
   );
 });
+
+//! route
 app.post("/cart", (res, req) => {
   data = req.body;
   //details:(Object conatining essential credentials)
@@ -132,13 +141,13 @@ app.post("/cart", (res, req) => {
   //data.details.quantity
   if (data.message === "insert") {
     connection.query(
-      "select quantity from merchandise_cart where user_id=? and merch_id= ?",
+      "SELECT quantity FROM merchandise_cart WHERE user_id=? and merch_id= ?",
       [data.details.user_id, data.details.merch_id],
       (err, res) => {
         if (err) throw err;
         if (!res) {
           connection.query(
-            "insert into merchandise_cart(user_id,merch_id,quantity) values ?",
+            "INSERT INTO merchandise_cart(user_id, merch_id,quantity) values ?",
             data.details,
             (err, rws) => {
               if (err) throw err;
@@ -153,7 +162,7 @@ app.post("/cart", (res, req) => {
           quantiti = res[0].quantity || res[0];
           quantiti += data.details.quantity;
           connection.query(
-            "update merchandise_cart set quantity= ? where user_id = ? and merch_id= ?",
+            "UPDATE merchandise_cart SET quantity= ? WHERE user_id = ? and merch_id= ?",
             [quantiti, data.details.quantity, data.details.merch_id],
             (err, res) => {
               if (err) console.log("quantity updated");
@@ -167,7 +176,7 @@ app.post("/cart", (res, req) => {
   }
   if (data.message === "view") {
     connection.query(
-      "select m.merch_id,m.quantity ,p.price*m.quantity as price from merch p,merchandise_cart m where user_id= ? and m.merch_id=p.merch_id ",
+      "SELECT m.merch_id, m.quantity, p.price*m.quantity AS price FROM merch p, merchandise_cart m WHERE user_id= ? and m.merch_id=p.merch_id ",
       [data.details.user_id],
       (err, resu) => {
         if (err) throw err;
@@ -182,6 +191,7 @@ app.post("/cart", (res, req) => {
   }
 });
 
+//! route
 app.post("/checkout/merch", (req, res) => {
   data = req.body;
   dtails = data.details;
@@ -191,20 +201,20 @@ app.post("/checkout/merch", (req, res) => {
   //details.quantity
   //details.timestamp
   connection.query(
-    "insert into orders_list values ?",
+    "INSERT INTO orders_list values ?",
     [dtails],
     (err, rows) => {
       if (err) throw err;
       if (rows.affectedRows > 0) {
         connection.query(
-          "insert into merchandise_order(user_id,price,time_purchased) select p.user_id,sum(m.price*p.quantity) as price,p.timestamp from merch m,orders_list p where m.merch_id=p.merch_id and p.user_id=? and p.timestamp =?",
+          "INSERT INTO merchandise_order(user_id, price, time_purchased) SELECT p.user_id, sum(m.price*p.quantity) AS price, p.timestamp FROM merch m, orders_list p WHERE m.merch_id=p.merch_id and p.user_id=? and p.timestamp =?",
           [dtails.user_id, dtails.timestamp],
           (err, result) => {
             if (err) throw err;
             if (result.affectedRows > 0) {
               res.send(
                 connection.query(
-                  "select * from merchandise_order where user_id=? and time_purchased=?",
+                  "SELECT * FROM merchandise_order WHERE user_id=? and time_purchased=?",
                   [dtails.user_id, dtails.timestamp],
                   (err, results) => {
                     if (err) throw err;
@@ -219,7 +229,7 @@ app.post("/checkout/merch", (req, res) => {
     }
   );
 });
-// require("./app/routes/tours")(app);
+
 app.listen(5000, () => {
   console.log("Server is running on port 5000.");
 });
