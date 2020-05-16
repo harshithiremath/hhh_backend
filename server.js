@@ -180,7 +180,7 @@ app.post("/checkout/tickets", (req, res) => {
 //! route
 app.post("/cart", (req, res) => {
   let data = req.body;
-  console.log("data in req in cart1", data);
+  // console.log("data in req in cart1", data);
   // // details:(Object containing essential credentials)
   // // data.details.user_id
   // // data.details.merch_id
@@ -189,16 +189,16 @@ app.post("/cart", (req, res) => {
     connection.query(
       `SELECT quantity FROM merchandise_cart WHERE user_id=(SELECT user_id from users where users.email='${data.details.user_id}') and merch_id=${data.details.merch_id}`,
       (err, res1) => {
-        // console.log("res in cart1", res);
+        // // console.log("res in cart1", res);
         if (err) {
           console.log("error in sql query 1 ");
         } else {
-          // console.log(res);
-          if (res1) {
-            // console.log("res in cart1", res);
-            console.log(
-              `INSERT INTO merchandise_cart(user_id, merch_id, quantity) values ((SELECT user_id from users WHERE email='${data.details.user_id}'), ${data.details.merch_id}, ${data.details.quantity})`
-            );
+          // // console.log(res);
+          if (!res1) {
+            // // console.log("res in cart1", res);
+            // console.log(
+            //   `INSERT INTO merchandise_cart(user_id, merch_id, quantity) values ((SELECT user_id from users WHERE email='${data.details.user_id}'), ${data.details.merch_id}, ${data.details.quantity})`
+            // );
             connection.query(
               `INSERT INTO merchandise_cart(user_id, merch_id, quantity) values ((SELECT user_id from users WHERE email='${data.details.user_id}'), ${data.details.merch_id}, ${data.details.quantity})`,
               (err, rws) => {
@@ -210,7 +210,7 @@ app.post("/cart", (req, res) => {
             res.send("Item added  to cart ");
             return;
           } else {
-            let quantity = res[0].quantity || res[0];
+            let quantity = res1[0].quantity || res1[0];
             quantity += data.details.quantity;
             connection.query(
               `UPDATE merchandise_cart SET quantity=${quantity} WHERE user_id=(SELECT user_id from users where users.email='${data.details.user_id}') and merch_id=${data.details.merch_id}`,
