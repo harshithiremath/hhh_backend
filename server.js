@@ -179,49 +179,55 @@ app.post("/checkout/tickets", (req, res) => {
 
 //! route
 app.post("/cart", (req, res) => {
-  data = req.body;
-  //details:(Object containing essential credentials)
-  //data.details.user_id
-  //data.details.merch_id
-  //data.details.quantity
-  if (data["message"] === "insert") {
+  let data = req.body;
+  console.log("data in req in cart1", data);
+  // // details:(Object containing essential credentials)
+  // // data.details.user_id
+  // // data.details.merch_id
+  // // data.details.quantity
+  if (data.message === "insert") {
     connection.query(
-      "SELECT quantity FROM merchandise_cart WHERE user_id=? and merch_id= ?",
-      [data.details.user_id, data.details.merch_id],
-      (err, res) => {
-        if (err) throw err;
-        if (!res) {
-          connection.query(
-            "INSERT INTO merchandise_cart(user_id, merch_id,quantity) values ?",
-            data.details,
-            (err, rws) => {
-              if (err) throw err;
-              app.post("/checkout/merchandise");
-              console.log("inserted in cart");
-            }
-          );
-          res.send("Item added  to cart ");
-          return;
-        }
-        if (res) {
-          quantiti = res[0].quantity || res[0];
-          quantiti += data.details.quantity;
-          connection.query(
-            "UPDATE merchandise_cart SET quantity= ? WHERE user_id = ? and merch_id= ?",
-            [quantiti, data.details.quantity, data.details.merch_id],
-            (err, res) => {
-              if (err) console.log("quantity updated");
-            }
-          );
-          res.send("Item added to cart");
-          return;
+      `SELECT quantity FROM merchandise_cart WHERE user_id=(SELECT user_id from users where users.email='${data.details.user_id}') and merch_id=${data.details.merch_id}`,
+      (err, res1) => {
+        // console.log("res in cart1", res);
+        if (err) {
+          console.log("error in sql query 1 ");
+        } else {
+          // console.log(res);
+          if (res1) {
+            // console.log("res in cart1", res);
+            console.log(
+              `INSERT INTO merchandise_cart(user_id, merch_id, quantity) values ((SELECT user_id from users WHERE email='${data.details.user_id}'), ${data.details.merch_id}, ${data.details.quantity})`
+            );
+            connection.query(
+              `INSERT INTO merchandise_cart(user_id, merch_id, quantity) values ((SELECT user_id from users WHERE email='${data.details.user_id}'), ${data.details.merch_id}, ${data.details.quantity})`,
+              (err, rws) => {
+                if (err) throw err;
+                app.post("/checkout/merchandise");
+                console.log("inserted in cart");
+              }
+            );
+            res.send("Item added  to cart ");
+            return;
+          } else {
+            let quantity = res[0].quantity || res[0];
+            quantity += data.details.quantity;
+            connection.query(
+              `UPDATE merchandise_cart SET quantity=${quantity} WHERE user_id=(SELECT user_id from users where users.email='${data.details.user_id}') and merch_id=${data.details.merch_id}`,
+              (err, res) => {
+                if (err) console.log("quantity updated");
+              }
+            );
+            res.send("Item added to cart");
+            return;
+          }
         }
       }
     );
   }
   if (data["message"] === "view") {
     connection.query(
-      "SELECT m.merch_id, m.quantity, p.price*m.quantity AS price FROM merch p, merchandise_cart m WHERE user_id= ? and m.merch_id=p.merch_id ",
+      "SELECT m.merch_id, m.quantity, p.price*m.quantity AS price FROM merch p, merchandise_cart m WHERE m.user_id= ? and m.merch_id=p.merch_id ",
       [data.details.user_id],
       (err, resu) => {
         if (err) throw err;
