@@ -16,12 +16,8 @@ module.exports = (app, connectio) => {
           if (err) {
             console.log("error in sql query 1 ");
           } else {
+            console.log(res1.length);
             if (res1.length === 0) {
-              // // console.log("res in cart1", res);
-              // // console.log(
-              // //  `INSERT INTO merchandise_cart(user_id, merch_id, quantity) values ((SELECT user_id from users WHERE email='${data.details.user_id}'), ${data.details.merch_id}, ${data.details.quantity})`
-              // // );
-
               connectio.query(
                 `INSERT INTO merchandise_cart(user_id, merch_id, quantity) values ((SELECT user_id from users WHERE email='${data.details.user_id}'), ${data.details.merch_id}, ${data.details.quantity})`,
                 (err, rws) => {
@@ -38,14 +34,9 @@ module.exports = (app, connectio) => {
               // quantity += data.details.quantity;
               if (quantity + data.details.quantity > data.details.merch_limit) {
                 quantity = data.details.merch_limit;
+              } else {
+                quantity = quantity + data.details.quantity;
               }
-              // // console.log(
-              // //   "quantity",
-              // //   quantity,
-              // //   "merch_id",
-              // //   data.details.merch_id
-              // // );
-
               connectio.query(
                 `UPDATE merchandise_cart SET quantity=${quantity} WHERE user_id=(SELECT user_id from users where users.email='${data.details.user_id}') and merch_id=${data.details.merch_id}`,
                 (err, res1) => {
@@ -126,6 +117,8 @@ module.exports = (app, connectio) => {
     );
     res.send("deremented/deleted");
   });
+
+  // ! route
   app.post("/incrementCart", (req, res) => {
     connectio.query(
       `SELECT * FROM merchandise_cart c, merch m WHERE c.user_id=(SELECT user_id from users WHERE email='${req.body.body.email}') and c.merch_id=${req.body.body.merch_id} and c.merch_id=m.merch_id`,

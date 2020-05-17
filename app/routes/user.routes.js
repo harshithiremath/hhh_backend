@@ -2,8 +2,10 @@ module.exports = (app) => {
   const users = require("../controllers/user.controller.js");
 
   // Create a new User
+  // ! route
   app.post("/users", users.create);
 
+  // ! route
   app.post("/signin", users.verify);
   // Retrieve all Users
   //app.get("users", users.findAll);
