@@ -6,19 +6,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "index": "npm run index",
-    "hhh": "npm start --prefix hhh",
-    "something": "concurrently \"npm run hhh \" \" npm run index \"",
-    "start": "node server.js",
+    "start": "nodemon server.js",
     "dev": "nodemon server.js"
   },
   "author": "hhh",
   "license": "ISC",
   "dependencies": {
-    "concurrently": "^5.2.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "mysql": "^2.18.1",
-    "nodemon": "^2.0.3"
+    "mysql": "^2.18.1"
   },
   "repository": {
     "type": "git",
@@ -27,5 +23,6 @@
   "bugs": {
     "url": "https://github.com/harshithiremath/hhh_backend/issues"
   },
-  "homepage": "https://github.com/harshithiremath/hhh_backend#readme"
+  "homepage": "https://github.com/harshithiremath/hhh_backend#readme",
+  "devDependencies": {}
 }
