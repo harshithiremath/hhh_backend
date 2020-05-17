@@ -152,6 +152,7 @@ module.exports = (app, connectio) => {
     res.send("deremented/deleted");
   });
 
+  // ! route
   app.get("/getCartTotalPrice", (req, res) => {
     let user_id = req.query.user_id;
     // console.log(
