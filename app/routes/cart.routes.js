@@ -151,4 +151,22 @@ module.exports = (app, connectio) => {
     );
     res.send("deremented/deleted");
   });
+
+  app.get("/getCartTotalPrice", (req, res) => {
+    let user_id = req.query.user_id;
+    // console.log(
+    //   `SELECT SUM(c.quantity*m.price) FROM merch m, users u, merchandise_cart c WHERE c.user_id=(SELECT user_id FROM users WHERE email='${user_id}') AND c.merch_id=m.merch_id;`
+    // );
+    connectio.query(
+      `SELECT SUM(c.quantity*m.price) AS sum FROM merch m, users u, merchandise_cart c WHERE c.user_id=(SELECT user_id FROM users WHERE email='${user_id}') AND c.user_id=u.user_id AND c.merch_id=m.merch_id;`,
+      (err, res1) => {
+        if (err) {
+          console.log("error in getCartTotalPrice");
+          res.send("error in getCartTotalPrice");
+        } else {
+          res.send(res1);
+        }
+      }
+    );
+  });
 };

@@ -9,15 +9,17 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // parse requests of content-type: application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  })
+);
 app.get("/hhh", (req, res) => {
   res.send("Welcome to HHH website ");
 });
 app.get("/", (req, res) => {
   res.json({
-    message: "Welcome to hhh test application."
+    message: "Welcome to hhh test application.",
   });
 });
 
@@ -26,17 +28,16 @@ require("./app/routes/user.routes.js")(app);
 
 require("./app/routes/cart.routes.js")(app, connection);
 
+require("./app/routes/checkout.routes.js")(app, connection);
 
-require('./app/routes/checkout.routes')(app, connection);
-
-require('./app/routes/wallet.routes')(app, connection)
+require("./app/routes/wallet.routes.js")(app, connection);
 
 //! route
 app.get("/tours", (req, res) => {
   connection.query("SELECT * FROM tours", function (err, results, fields) {
     if (err) {
       res.send({
-        message: "error in query"
+        message: "error in query",
       });
     } else {
       res.send(results);
@@ -56,7 +57,7 @@ app.get("/merch", (req, res) => {
       function (err, results, fields) {
         if (err) {
           res.send({
-            message: "error in query for individual merch"
+            message: "error in query for individual merch",
           });
         } else {
           res.send(results);
@@ -67,7 +68,7 @@ app.get("/merch", (req, res) => {
     connection.query("SELECT * FROM merch", function (err, results, fields) {
       if (err) {
         res.send({
-          message: "error in query"
+          message: "error in query",
         });
       } else {
         res.send(results);
@@ -86,7 +87,7 @@ app.get("/orders", (req, res) => {
     (err, used_res, fields) => {
       if (err) {
         res.send({
-          message: "error in query1"
+          message: "error in query1",
         });
       } else if (used_res.length === 0) {
         res.send({});
@@ -100,7 +101,7 @@ app.get("/orders", (req, res) => {
           function (err, results, fields) {
             if (err) {
               res.send({
-                message: "error in query2"
+                message: "error in query2",
               });
             } else {
               res.send(results);
@@ -121,7 +122,7 @@ app.get("/bought_tickets", (req, res) => {
     (err, res1, fields) => {
       if (err) {
         res.send({
-          message: "error in bought_tickets1"
+          message: "error in bought_tickets1",
         });
       } else if (res1.length === 0) {
         res.send({});
@@ -131,7 +132,7 @@ app.get("/bought_tickets", (req, res) => {
           (err, results, fields) => {
             if (err) {
               res.send({
-                message: "error in bought_tickets2"
+                message: "error in bought_tickets2",
               });
             } else {
               res.send(results);
@@ -152,7 +153,7 @@ app.get("/singleTour", (req, res) => {
     (err, res1, fields) => {
       if (err) {
         res.send({
-          message: "error in singleTour get1"
+          message: "error in singleTour get1",
         });
       } else {
         res.send(res1);
@@ -197,11 +198,12 @@ app.post("/checkout/tickets", (req, res) => {
         );
         if (!row) {
           res.status(418).send({
-            message: "Insufficient Balance"
+            message: "Insufficient Balance",
           });
-        } else res.status(500).send({
-          message: "Server Eroor"
-        });
+        } else
+          res.status(500).send({
+            message: "Server Eroor",
+          });
       }
     }
   );
