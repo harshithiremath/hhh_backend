@@ -281,6 +281,19 @@ app.post("/checkout/merch", (req, res) => {
   );
 });
 
+app.post("/wallet",(req,res)=>{
+  user=req.body.user;
+  connection.query("select balance from wallet where user_id = (select user_id from users where email = ?)",['h@h.com'],(err,row)=>{
+    if (err) throw err;
+    if(row){
+      res.send({balance:row[0]});
+    }
+    else{
+      console.log("error trying to get balance");
+    }
+  })
+})
+
 app.listen(5000, () => {
   console.log("Server is running on port 5000.");
 });
