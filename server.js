@@ -9,35 +9,22 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // parse requests of content-type: application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.get("/hhh", (req, res) => {
   res.send("Welcome to HHH website ");
 });
 app.get("/", (req, res) => {
-  res.json({
-    message: "Welcome to hhh test application."
-  });
+  res.json({ message: "Welcome to hhh test application." });
 });
 
 require("./app/routes/user.routes.js")(app);
 // require("./app/routes/tour.routes")(app);
 
-require("./app/routes/cart.routes.js")(app, connection);
-
-
-require('./app/routes/checkout.routes')(app, connection);
-
-require('./app/routes/wallet.routes')(app, connection)
-
 //! route
 app.get("/tours", (req, res) => {
   connection.query("SELECT * FROM tours", function (err, results, fields) {
     if (err) {
-      res.send({
-        message: "error in query"
-      });
+      res.send({ message: "error in query" });
     } else {
       res.send(results);
     }
@@ -48,16 +35,14 @@ app.get("/tours", (req, res) => {
 app.get("/merch", (req, res) => {
   //! This route is used both for getting the details of all the merchandise
   //! and of a single merchandise whose merch_id is passed in query object of HTTP GET request
-  // // console.log(req);
+  // console.log(req);
   if (Object.keys(req.query).length != 0) {
     const merch_id = req.query.merch_id;
     connection.query(
       `SELECT * FROM merch WHERE merch_id='${merch_id}'`,
       function (err, results, fields) {
         if (err) {
-          res.send({
-            message: "error in query for individual merch"
-          });
+          res.send({ message: "error in query for individual merch" });
         } else {
           res.send(results);
         }
@@ -66,9 +51,7 @@ app.get("/merch", (req, res) => {
   } else {
     connection.query("SELECT * FROM merch", function (err, results, fields) {
       if (err) {
-        res.send({
-          message: "error in query"
-        });
+        res.send({ message: "error in query" });
       } else {
         res.send(results);
       }
@@ -79,29 +62,26 @@ app.get("/merch", (req, res) => {
 //! route
 app.get("/orders", (req, res) => {
   const user = req.query.user;
-  // // console.log("user", user);
-  // // console.log(`SELECT * FROM users WHERE email='${user}'`);
+  // console.log(req);
+  console.log("user", user);
+  // console.log(`SELECT * FROM users WHERE email='${user}'`);
   connection.query(
     `SELECT * FROM users WHERE email='${user}'`,
     (err, used_res, fields) => {
       if (err) {
-        res.send({
-          message: "error in query1"
-        });
+        res.send({ message: "error in query1" });
       } else if (used_res.length === 0) {
         res.send({});
       } else {
-        // // console.log(useless_res[0].user_id);
-        // // console.log(
-        // //   `SELECT * FROM merchandise_order WHERE user_id='${used_res[0].user_id}'`
-        // // );
+        // console.log(useless_res[0].user_id);
+        console.log(
+          `SELECT * FROM merchandise_order WHERE user_id='${used_res[0].user_id}'`
+        );
         connection.query(
           `SELECT * FROM merchandise_order WHERE user_id='${used_res[0].user_id}'`,
           function (err, results, fields) {
             if (err) {
-              res.send({
-                message: "error in query2"
-              });
+              res.send({ message: "error in query2" });
             } else {
               res.send(results);
             }
@@ -115,14 +95,12 @@ app.get("/orders", (req, res) => {
 // ! route
 app.get("/bought_tickets", (req, res) => {
   const user = req.query.user;
-  // // console.log("user", user);
+  // console.log("user", user);
   connection.query(
     `SELECT * FROM users WHERE email='${user}'`,
     (err, res1, fields) => {
       if (err) {
-        res.send({
-          message: "error in bought_tickets1"
-        });
+        res.send({ message: "error in bought_tickets1" });
       } else if (res1.length === 0) {
         res.send({});
       } else {
@@ -130,9 +108,7 @@ app.get("/bought_tickets", (req, res) => {
           `SELECT * FROM ticket_purchase WHERE user_id='${res1[0].user_id}'`,
           (err, results, fields) => {
             if (err) {
-              res.send({
-                message: "error in bought_tickets2"
-              });
+              res.send({ message: "error in bought_tickets2" });
             } else {
               res.send(results);
             }
@@ -146,14 +122,12 @@ app.get("/bought_tickets", (req, res) => {
 // ! route
 app.get("/singleTour", (req, res) => {
   const tour_id = req.query.tour_id;
-  // console.log("tour_id", tour_id);
+  console.log("tour_id", tour_id);
   connection.query(
     `SELECT * FROM tours WHERE tour_id='${tour_id}'`,
     (err, res1, fields) => {
       if (err) {
-        res.send({
-          message: "error in singleTour get1"
-        });
+        res.send({ message: "error in singleTour get1" });
       } else {
         res.send(res1);
       }
@@ -196,26 +170,87 @@ app.post("/checkout/tickets", (req, res) => {
           }
         );
         if (!row) {
-          res.status(418).send({
-            message: "Insufficient Balance"
-          });
-        } else res.status(500).send({
-          message: "Server Eroor"
-        });
+          res.status(418).send({ message: "Insufficient Balance" });
+        } else res.status(500).send({ message: "Server Eroor" });
       }
     }
   );
 });
 
 //! route
+app.post("/cart", (req, res) => {
+  let data = req.body;
+  // console.log("data in req in cart1", data);
+  // // details:(Object containing essential credentials)
+  // // data.details.user_id
+  // // data.details.merch_id
+  // // data.details.quantity
+  if (data.message === "insert") {
+    connection.query(
+      `SELECT quantity FROM merchandise_cart WHERE user_id=(SELECT user_id from users where users.email='${data.details.user_id}') and merch_id=${data.details.merch_id}`,
+      (err, res1) => {
+        // // console.log("res in cart1", res);
+        if (err) {
+          console.log("error in sql query 1 ");
+        } else {
+          // // console.log(res);
+          if (!res1) {
+            // // console.log("res in cart1", res);
+            // console.log(
+            //   `INSERT INTO merchandise_cart(user_id, merch_id, quantity) values ((SELECT user_id from users WHERE email='${data.details.user_id}'), ${data.details.merch_id}, ${data.details.quantity})`
+            // );
+            connection.query(
+              `INSERT INTO merchandise_cart(user_id, merch_id, quantity) values ((SELECT user_id from users WHERE email='${data.details.user_id}'), ${data.details.merch_id}, ${data.details.quantity})`,
+              (err, rws) => {
+                if (err) throw err;
+                app.post("/checkout/merchandise");
+                console.log("inserted in cart");
+              }
+            );
+            res.send("Item added  to cart ");
+            return;
+          } else {
+            let quantity = res1[0].quantity || res1[0];
+            quantity += data.details.quantity;
+            connection.query(
+              `UPDATE merchandise_cart SET quantity=${quantity} WHERE user_id=(SELECT user_id from users where users.email='${data.details.user_id}') and merch_id=${data.details.merch_id}`,
+              (err, res) => {
+                if (err) console.log("quantity updated");
+              }
+            );
+            res.send("Item added to cart");
+            return;
+          }
+        }
+      }
+    );
+  }
+  if (data["message"] === "view") {
+    connection.query(
+      "SELECT m.merch_id, m.quantity, p.price*m.quantity AS price FROM merch p, merchandise_cart m WHERE m.user_id= ? and m.merch_id=p.merch_id ",
+      [data.details.user_id],
+      (err, resu) => {
+        if (err) throw err;
+        if (resu) {
+          res.send(resu);
+        }
+        if (!resu) {
+          res.send("cart is empty");
+        }
+      }
+    );
+  }
+});
+
+//! route
 app.post("/checkout/merch", (req, res) => {
   data = req.body;
   dtails = data.details;
-  // ? details must be an array of arrays in which the inner array must have the values in order
-  // ? details.user_id
-  // ? details.merch_id
-  // ? details.quantity
-  // ? details.timestamp
+  //details must be an array of arrays in which the inner array must have the values in order
+  //details.user_id
+  //details.merch_id
+  //details.quantity
+  //details.timestamp
   connection.query(
     "INSERT INTO orders_list values ?",
     [dtails],
@@ -248,7 +283,7 @@ app.post("/checkout/merch", (req, res) => {
 
 app.post("/wallet",(req,res)=>{
   user=req.body.user;
-  connection.query("select balance from wallet where user_id = (select user_id from users where email = ?)",['h@h.com'],(err,row)=>{
+  connection.query("select balance from wallet where user_id = (select user_id from users where email = ?)",[user.email],(err,row)=>{
     if (err) throw err;
     if(row){
       res.send({balance:row[0]});
