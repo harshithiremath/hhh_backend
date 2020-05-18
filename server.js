@@ -57,7 +57,6 @@ app.get("/merch", (req, res) => {
       `SELECT * FROM merch WHERE merch_id='${merch_id}'`,
       function (err, results, fields) {
         if (err) {
-
           res.send({
             message: "error in query for individual merch",
           });
@@ -92,7 +91,6 @@ app.get("/orders", (req, res) => {
         res.send({
           message: "error in query1",
         });
-
       } else if (used_res.length === 0) {
         res.send({});
       } else {
@@ -104,7 +102,6 @@ app.get("/orders", (req, res) => {
           `SELECT * FROM merchandise_order WHERE user_id='${used_res[0].user_id}'`,
           function (err, results, fields) {
             if (err) {
-
               res.send({
                 message: "error in query2",
               });
@@ -157,7 +154,6 @@ app.get("/singleTour", (req, res) => {
     `SELECT * FROM tours WHERE tour_id='${tour_id}'`,
     (err, res1, fields) => {
       if (err) {
-
         res.send({
           message: "error in singleTour get1",
         });
@@ -169,52 +165,52 @@ app.get("/singleTour", (req, res) => {
 });
 
 //! route
-app.post("/checkout/tickets", (req, res) => {
-  details = req.body.details;
-  //details.user_id
-  //details.ticket_quantity
-  //details.tour_id
-  //details.price
-  //details.time
-  connection.query(
-    "SELECT balance FROM wallet WHERE user_id= ? and balance > ?",
-    [details.user_id, details.price],
-    (error, row) => {
-      if (error) throw err;
-      if (row) {
-        balance = row[0].balance || row[0];
-        connection.query(
-          "INSERT INTO ticket_purchase (user_id,ticket_quantity, tour_id, price, time_purchased) values ? ",
-          details,
-          (err, result) => {
-            if (err) throw err;
-            console.log("Ticket inserted");
-            res.send(result);
-            balance -= details.price;
-            connection.query(
-              "UPDATE wallet SET balance= ? WHERE user_id= ",
-              [balanace, details.user_id],
-              (err, ress) => {
-                if (err) throw err;
-                console.log("Wallet updated");
-              }
-            );
-            return;
-          }
-        );
-        if (!row) {
-          res.status(418).send({
-            message: "Insufficient Balance",
-          });
-        } else
-          res.status(500).send({
-            message: "Server Eroor",
-          });
-        } else res.status(500).send({ message: "Server Eroor" });
-      }
-    }
-  );
-});
+// app.post("/checkout/tickets", (req, res) => {
+//   details = req.body.details;
+//   //details.user_id
+//   //details.ticket_quantity
+//   //details.tour_id
+//   //details.price
+//   //details.time
+//   connection.query(
+//     "SELECT balance FROM wallet WHERE user_id= ? and balance > ?",
+//     [details.user_id, details.price],
+//     (error, row) => {
+//       if (error) throw err;
+//       if (row) {
+//         balance = row[0].balance || row[0];
+//         connection.query(
+//           "INSERT INTO ticket_purchase (user_id,ticket_quantity, tour_id, price, time_purchased) values ? ",
+//           details,
+//           (err, result) => {
+//             if (err) throw err;
+//             console.log("Ticket inserted");
+//             res.send(result);
+//             balance -= details.price;
+//             connection.query(
+//               "UPDATE wallet SET balance= ? WHERE user_id= ",
+//               [balanace, details.user_id],
+//               (err, ress) => {
+//                 if (err) throw err;
+//                 console.log("Wallet updated");
+//               }
+//             );
+//             return;
+//           }
+//         );
+//         if (!row) {
+//           res.status(418).send({
+//             message: "Insufficient Balance",
+//           });
+//         } else
+//           res.status(500).send({
+//             message: "Server Eroor",
+//           });
+//         } else res.status(500).send({ message: "Server Eroor" });
+//       }
+//     }
+//   );
+// });
 
 //! route
 app.post("/cart", (req, res) => {
@@ -320,18 +316,21 @@ app.post("/checkout/merch", (req, res) => {
   );
 });
 
-app.post("/wallet",(req,res)=>{
-  user=req.body.user;
-  connection.query("select balance from wallet where user_id = (select user_id from users where email = ?)",[user.email],(err,row)=>{
-    if (err) throw err;
-    if(row){
-      res.send({balance:row[0]});
+app.post("/wallet", (req, res) => {
+  user = req.body.user;
+  connection.query(
+    "select balance from wallet where user_id = (select user_id from users where email = ?)",
+    [user.email],
+    (err, row) => {
+      if (err) throw err;
+      if (row) {
+        res.send({ balance: row[0] });
+      } else {
+        console.log("error trying to get balance");
+      }
     }
-    else{
-      console.log("error trying to get balance");
-    }
-  })
-})
+  );
+});
 
 app.listen(5000, () => {
   console.log("Server is running on port 5000.");

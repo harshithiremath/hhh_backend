@@ -1,88 +1,98 @@
 module.exports = (app, connection) => {
   app.post("/checkout/confirmMerch", (req, res) => {
     // res.setTimeout(5000);
-    res.setTimeout(5000);
-    let user_id = req.body.user_id;
+    // res.setInterval(5000);
+    let user_id_email = req.body.user_id;
+    let user_id = "";
     let cartTotal = 0; // ? Have
-    let wallet = 0; // ? Have
-    let cart = {};
-    // TODO Deducting money from wallet
-
-    // getting the total cart worth
+    // let wallet = 0; // ? Have
+    // let cart = {};
+    // TODO get user_id
     connection.query(
-      `SELECT COUNT(*), SUM(c.quantity*m.price) AS sum FROM merch m, users u, merchandise_cart c WHERE c.user_id=(SELECT user_id FROM users WHERE email='${user_id}') AND c.user_id=u.user_id AND c.merch_id=m.merch_id;`,
+      `SELECT user_id FROM users WHERE email='${user_id_email}'`,
       (err, res1) => {
         if (err) {
-          console.log("failed in merchCheckout1");
+          console.log("error in merchCheckout1");
           res.sendStatus(500);
         } else {
-          cartTotal = res1[0].sum;
-          // //
-          // //
-          // //
-          // getting the wallet balance
+          user_id = res1[0].user_id;
+
+          // TODO update wallet
+          // getting total cart worth
           connection.query(
-            `SELECT balance FROM wallet WHERE user_id=(SELECT user_id FROM users WHERE email='${user_id}')`,
-            (err, res1) => {
+            `SELECT SUM(c.quantity*m.price) AS sum FROM merch m, users u, merchandise_cart c WHERE c.user_id=${user_id} AND c.user_id=u.user_id AND c.merch_id=m.merch_id;`,
+            (err, res2) => {
               if (err) {
                 console.log("failed in merchCheckout2");
                 res.sendStatus(500);
               } else {
-                wallet = res1[0].balance;
-                // // console.log("wallet", typeof wallet, wallet);
-                // // console.log("cartTotal", typeof cartTotal, cartTotal);
-                // deducting money from wallet
-                let deducted_balance = wallet - cartTotal;
-                console.log("deducted balance", deducted_balance);
-                // // deducted_balance = 99999;
-                // //
-                // //
-                // //
-                // //
+                cartTotal = res2[0].sum;
+
+                // Update wallet
                 connection.query(
-                  `UPDATE wallet SET balance=${deducted_balance} WHERE user_id=(SELECT user_id FROM users WHERE email='${user_id}')`,
-                  (err, res1) => {
+                  `UPDATE wallet SET balance=balance-${cartTotal} WHERE user_id=${user_id} AND balance-${cartTotal}>0`,
+                  (err, res3) => {
                     if (err) {
                       console.log("failed in merchCheckout3");
                       res.sendStatus(500);
                     } else {
-                      //   console.log("Money deducted from wallet");
-                      // wallet = res1[0].balance
-                      // //
-                      // //
-                      // //
-
-                      // TODO Main
-
-                      // getting cart contents
-                      connection.query(
-                        `SELECT merch_id, quantity FROM merchandise_cart WHERE user_id=(SELECT user_id FROM users WHERE email='${user_id}')`,
-                        (err, res1) => {
-                          if (err) {
-                            console.log("failed in merchCheckout4");
-                            res.sendStatus(500);
-                          } else {
-                            cart = res1[0];
-                            console.log("cart >>", cart);
-                            for (let [key, value] of Object.entries(cart)) {
-                              console.log(`${key}: ${value}`);
-                            }
-                          }
-                        }
-                      );
+                      console.log("Updated wallet");
                     }
                   }
                 );
               }
             }
           );
+
+          // TODO reduce limit in merch
+          connection.query(
+            `UPDATE merch m, merchandise_cart c SET m.merch_limit = m.merch_limit-c.quantity WHERE c.user_id=${user_id} AND m.merch_id=c.merch_id`,
+            (err, res2) => {
+              if (err) {
+                console.log("failed in merchCheckout4");
+                res.sendStatus(500);
+              } else {
+                console.log("merch limit updated");
+              }
+            }
+          );
+
+          // TODO insert into merchandise_orders
+          connection.query(
+            `INSERT INTO merchandise_order(merch_id, price, time_purchased, quantity, user_id) SELECT c.merch_id, c.quantity*m.price, now(),c.quantity, c.user_id FROM merchandise_cart c, merch m WHERE c.user_id='${user_id}' AND c.merch_id=m.merch_id`,
+            (err, res2) => {
+              if (err) {
+                console.log("failed in merchCheckout5");
+                res.sendStatus(500);
+              } else {
+                console.log("Added to merchandise_orders");
+              }
+            }
+          );
+
+          // TODO remove from cart
+          connection.query(
+            `DELETE FROM merchandise_cart WHERE user_id='${user_id}'`,
+            (err, res2) => {
+              if (err) {
+                console.log("failed in merchCheckout6");
+                res.sendStatus(500);
+              } else {
+                console.log("removed from cart");
+                res.sendStatus(200);
+              }
+            }
+          );
+          // await wait(5000);
+          // res.sendStatus(200)
         }
       }
     );
   });
-  // app.post()
-  // res.sendStatus(200)
 };
+
+// app.post()
+// res.sendStatus(200)
 
 // // res.json({
 // //     message: "Welcome to hhh test application."
