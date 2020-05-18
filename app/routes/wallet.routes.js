@@ -50,6 +50,7 @@ module.exports = (app, connection) => {
           console.log("error in rechargeWallet 1");
           res.send(201);
         } else {
+          const user_id = res[0].user_id;
           // TODO increase the wallet by amount
           connection.query(
             `UPDATE wallet SET balance=balance+${req.body.amount}, expiry=DATE_ADD(expiry, INTERVAL 2 MONTH) WHERE user_id=${user_id}`,
