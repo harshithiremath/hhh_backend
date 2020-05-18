@@ -59,7 +59,7 @@ module.exports = (app, connection) => {
 
           // TODO insert into merchandise_orders
           connection.query(
-            `INSERT INTO merchandise_order(merch_id, price, time_purchased, quantity, user_id) SELECT c.merch_id, c.quantity*m.price, now(),c.quantity, c.user_id FROM merchandise_cart c, merch m WHERE c.user_id='${user_id}' AND c.merch_id=m.merch_id`,
+            `INSERT INTO merchandise_order(merch_id, price, time_purchased, quantity, user_id) SELECT c.merch_id, c.quantity*m.price, now(), c.quantity, c.user_id FROM merchandise_cart c, merch m WHERE c.user_id='${user_id}' AND c.merch_id=m.merch_id`,
             (err, res2) => {
               if (err) {
                 console.log("failed in merchCheckout5");
@@ -85,6 +85,69 @@ module.exports = (app, connection) => {
           );
           // await wait(5000);
           // res.sendStatus(200)
+        }
+      }
+    );
+  });
+
+  // ! route
+  // !
+  // !
+  app.post("/checkoutconfirmTicket", (req, res) => {
+    console.log("called ticket Checkout");
+    // console.log(req.body);
+    // res.sendStatus(201); for error
+    let user_id_email = req.body.user_email;
+    let user_id = "";
+    // TODO First fetch the user_id
+    connection.query(
+      `SELECT user_id FROM users WHERE email='${user_id_email}'`,
+      (err, res1) => {
+        if (err) {
+          console.log("error in ticketcheckout 1");
+          res.sendStatus(201);
+        } else {
+          user_id = res1[0].user_id;
+
+          // TODO deduct from wallet
+          connection.query(
+            `UPDATE wallet w, tours t SET w.balance = w.balance - (${req.body.quantity}*t.price) WHERE w.user_id = ${user_id} AND t.tour_id=${req.body.tour_id}`,
+            (err, res2) => {
+              if (err) {
+                console.log("error in ticketcheckout 2");
+                res.sendStatus(201);
+              } else {
+                console.log("deducted from wallet");
+              }
+            }
+          );
+
+          // TODO reduce from Tours
+          connection.query(
+            `UPDATE tours SET tours_limit = tours_limit-${req.body.quantity} WHERE tour_id = ${req.body.tour_id} AND tours_limit-${req.body.quantity}>=0`,
+            (err, res3) => {
+              if (err) {
+                console.log("error in ticketcheckout 3");
+                res.sendStatus(201);
+              } else {
+                console.log("reduced from tours");
+              }
+            }
+          );
+
+          // TODO Add to ticket_purchase
+          connection.query(
+            `INSERT INTO ticket_purchase(price, ticket_quantity, time_purchased, tour_id, user_id) SELECT (${req.body.quantity}*t.price), ${req.body.quantity}, now(), ${req.body.tour_id}, ${user_id} FROM tours t WHERE t.tour_id=${req.body.tour_id}`,
+            (err, res4) => {
+              if (err) {
+                console.log("error in ticketcheckout 4");
+                res.sendStatus(201);
+              } else {
+                console.log("added to ticket_purchase");
+                res.sendStatus(200);
+              }
+            }
+          );
         }
       }
     );
