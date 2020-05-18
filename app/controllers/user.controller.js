@@ -17,21 +17,20 @@ exports.create = (req, res) => {
 
   // Save user in the database
   User.create(user, (err, data) => {
-    if (err){
-      if(err.message === 'User present in database'){
-        console.log("Present in database")
+    if (err) {
+      if (err.message === "User present in database") {
+        console.log("Present in database");
         res.status(418).send({
-          message : err.message
-        })
+          message: err.message,
+        });
         return;
-      }
-      else{
-       res.status(500).send({
-          message: err.message || "Some error occurred while creating the user.",
+      } else {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while creating the user.",
         });
       }
-    }
-    else{
+    } else {
       res.send(data);
     }
   });
@@ -51,6 +50,9 @@ exports.verify = (req, res) => {
       res.status(500).send({
         message: err.message || "Some error occurred while signing the user.",
       });
-    else res.send(data);
+    else {
+      console.log("data in verify", data);
+      res.send(data);
+    }
   });
 };

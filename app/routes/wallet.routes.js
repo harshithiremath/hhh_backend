@@ -37,4 +37,34 @@ module.exports = (app, connection) => {
       }
     );
   });
+
+  // ! route
+  app.post("/rechargeWallet", (req, res) => {
+    const user_email = req.body.user_email;
+
+    // TODO get user_id
+    connection.query(
+      `SELECT user_id FROM users WHERE email=${user_email}`,
+      (err, res1) => {
+        if (err) {
+          console.log("error in rechargeWallet 1");
+          res.send(201);
+        } else {
+          // TODO increase the wallet by amount
+          connection.query(
+            `UPDATE wallet SET balance=balance+${req.body.amount}, expiry=DATE_ADD(expiry, INTERVAL 2 MONTH) WHERE user_id=${user_id}`,
+            (err, res2) => {
+              if (err) {
+                console.log("error in rechargeWallet 2");
+                res.send(201);
+              } else {
+                console.log("successfully recharged the wallet");
+                res.send(200);
+              }
+            }
+          );
+        }
+      }
+    );
+  });
 };

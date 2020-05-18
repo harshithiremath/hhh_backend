@@ -9,43 +9,51 @@ const User = function (user) {
 };
 
 User.create = (newUser, result) => {
-  sql.query("SELECT * FROM users WHERE email= ?",newUser.email,(err,res)=>{
-    if (err){
-      console.log('error:',err);
-      result(err,null);
-      return;
+  sql.query(
+    `SELECT * FROM users WHERE email= '${newUser.email}'`,
+    (err, res) => {
+      if (err) {
+        console.log("error:", err);
+        result(err, null);
+        return;
+      }
+      if (res.length) {
+        console.log("Users credentials already present in database");
+        result({ message: "User present in database" }, null);
+        return;
+      } else if (!res.length) {
+        sql.query("INSERT INTO users SET ?", newUser, (err, res) => {
+          if (err) {
+            console.log("error: ", err);
+            result(err, null);
+            return;
+          }
+
+          console.log("created user: ", { id: res.insertId });
+          result(null, { id: res.insertId, first_name: newUser.first_name });
+        });
+      }
     }
-    if (res.length){
-      console.log("Users credentials already present in database");
-      result({message:'User present in database'},null);
-      return;
-    }
-    else if(!res.length){  
-      sql.query("INSERT INTO users SET ?", newUser, (err, res) => {
-        if (err) {
-          console.log("error: ", err);
-          result(err, null);
-          return;
-        }
-      
-        console.log("created user: ", { id: res.insertId });
-        result(null, { id: res.insertId, first_name: newUser.first_name });
-      });
-    }
-  });
+  );
 };
 
 User.verify = (checkUser, result) => {
   let email = checkUser.email;
-  sql.query(`SELECT FROM users where email = ${email}`, (err, res) => {
+  sql.query(`SELECT * FROM users where email = '${email}'`, (err, res) => {
     if (err) {
-      console.log("error", err);
-      result(err, null);
+      // console.log("error", err);
+      result(err, { done: false });
       return;
     }
-    if (res.password === checkUser.password) {
-      console.log("signed in: ", { id: res.user_id });
-      result(null, { id: res.user_id, email: email });
+    if (res.length == 1) {
+      if (res[0].password === checkUser.password) {
+        console.log("signed in: ", { id: res[0].user_id });
+        result(null, { done: true, id: res[0].user_id, email: email });
+      } else {
+        result(null, { done: false });
+      }
+    } else {
+      result(null, { done: false });
     }
   });
 };
