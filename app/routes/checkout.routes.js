@@ -152,7 +152,6 @@ module.exports = (app, connection) => {
       }
     );
   });
-};
 
 // app.post()
 // res.sendStatus(200)
@@ -160,3 +159,63 @@ module.exports = (app, connection) => {
 // // res.json({
 // //     message: "Welcome to hhh test application."
 // // });
+app.post("/checkoutconfirmSingleMerch", (req, res) => {
+  console.log("called single merch Checkout");
+  // console.log(req.body);
+  // res.sendStatus(201); for error
+  let user_id_email = req.body.user_email;
+  let user_id = "";
+  // TODO First fetch the user_id
+  connection.query(
+    `SELECT user_id FROM users WHERE email='${user_id_email}'`,
+    (err, res1) => {
+      if (err) {
+        console.log("error in ticketcheckout 1");
+        res.sendStatus(201);
+      } else {
+        user_id = res1[0].user_id;
+
+        // TODO deduct from wallet
+        connection.query(
+          `UPDATE wallet w, merch m SET w.balance = w.balance - (${req.body.quantity}*m.price) WHERE w.user_id = ${user_id} AND m.merch_id=${req.body.merch_id}`,
+          (err, res2) => {
+            if (err) {
+              console.log("error in ticketcheckout 2");
+              res.sendStatus(201);
+            } else {
+              console.log("deducted from wallet");
+            }
+          }
+        );
+
+        // TODO reduce from Tours
+        connection.query(
+          `UPDATE merch SET merch_limit = merch_limit-${req.body.quantity} WHERE merch_id = ${req.body.merch_id} AND merch_limit-${req.body.quantity}>=0`,
+          (err, res3) => {
+            if (err) {
+              console.log("error in ticketcheckout 3");
+              res.sendStatus(201);
+            } else {
+              console.log("reduced from tours");
+            }
+          }
+        );
+
+        // TODO Add to ticket_purchase
+        connection.query(
+          `INSERT INTO merchandise_order(price,quantity, time_purchased, merch_id, user_id) SELECT (${req.body.quantity}*m.price), ${req.body.quantity}, now(), ${req.body.merch_id}, ${user_id} FROM merch m WHERE m.merch_id=${req.body.merch_id}`,
+          (err, res4) => {
+            if (err) {
+              console.log("error in ticketcheckout 4");
+              res.sendStatus(201);
+            } else {
+              console.log("added to ticket_purchase");
+              res.sendStatus(200);
+            }
+          }
+        );
+      }
+    }
+  );
+});
+};
