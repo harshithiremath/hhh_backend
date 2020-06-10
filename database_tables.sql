@@ -221,12 +221,8 @@ INSERT INTO `wallet` VALUES (1,'2021-05-20 21:13:00',1000,23),(2,'2021-07-20 21:
 /*!40000 ALTER TABLE `wallet` ENABLE KEYS */;
 UNLOCK TABLES;
 
-DROP TRIGGER IF EXISTS `hhh`.`users_AFTER_INSERT`;
-
-DELIMITER $$
-USE `hhh`$$
-CREATE DEFINER = CURRENT_USER TRIGGER `hhh`.`users_AFTER_INSERT` AFTER INSERT ON `users` FOR EACH ROW
-BEGIN
-    insert into wallet(expiry,balance,user_id) values (2021-11-11 ,1000,new.user_id);
-END$$
-DELIMITER ;
+DROP TRIGGER IF EXISTS `walletins`;
+CREATE TRIGGER walletins 
+AFTER INSERT ON users  
+     FOR EACH ROW
+	INSERT INTO wallet(expiry,balance,user_id) values ( SYSDATE() + 10000000000,1000,new.user_id);
