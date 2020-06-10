@@ -1,13 +1,15 @@
 const passport=require('passport');
+const users=require('../controllers/user.controller')
 module.exports = (app) => {
 
   // Create a new User
   // ! route
-  //app.post("/users", users.create);
+  app.post("/users", users.create);
 
   // ! route
-  require('../controllers/user.controller')(passport)
-  app.post("/signin", (req,res)=>{
+  app.post("/signin", users.verify);
+  //require('../controllers/user.controller')(passport)
+  /*app.post("/signin", (req,res)=>{
     console.log(req.body.user.email)
      
     passport.authenticate(
@@ -30,7 +32,7 @@ module.exports = (app) => {
       }
     )(req,res)
   });
-  
+  */
   // Retrieve all Users
   //app.get("users", users.findAll);
 

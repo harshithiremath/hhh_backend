@@ -1,8 +1,8 @@
 const User = require("../models/user.model.js");
-const LocalStrategy=require('passport-local').Strategy;
+//const LocalStrategy=require('passport-local').Strategy;
 
 // Create and Save a new uer
-/*
+
 exports.create = (req, res) => {
   if (!req.body) {
     res.status(400).send({
@@ -37,7 +37,30 @@ exports.create = (req, res) => {
     }
   });
 };
-*/
+
+
+exports.verify = (req, res) => {
+  if (!req.body) {
+    res.status(400).send({
+      message: "Content can not be empty!",
+    });
+  }
+  const user = new User({
+    email: req.body.user.email,
+    password: req.body.user.password,
+  });
+  User.verify(user, (err, data) => {
+    if (err)
+      res.status(500).send({
+        message: err.message || "Some error occurred while signing the user.",
+      });
+    else {
+      console.log("data in verify", data);
+      res.send(data);
+    }
+  });
+};
+/*
 module.exports=function(passport){
   
   passport.use(
@@ -62,26 +85,4 @@ module.exports=function(passport){
         });
     }));
 };
-  /*
-exports.verify = (req, res) => {
-  if (!req.body) {
-    res.status(400).send({
-      message: "Content can not be empty!",
-    });
-  }
-  const user = new User({
-    email: req.body.user.email,
-    password: req.body.user.password,
-  });
-  User.verify(user, (err, data) => {
-    if (err)
-      res.status(500).send({
-        message: err.message || "Some error occurred while signing the user.",
-      });
-    else {
-      console.log("data in verify", data);
-      res.send(data);
-    }
-  });
-};
-*/
+  */
