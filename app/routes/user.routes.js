@@ -1,13 +1,51 @@
-const passport=require('passport');
-const users=require('../controllers/user.controller')
+let passport=require('passport');
+const users=require('../controllers/user.controller');
 module.exports = (app) => {
-
+  users.googleverify(passport);
   // Create a new User
   // ! route
   app.post("/users", users.create);
 
   // ! route
   app.post("/signin", users.verify);
+  
+
+  app.get('/auth/google',
+  passport.authenticate('google', { scope: 
+      [ 'https://www.googleapis.com/auth/plus.login',
+      , 'https://www.googleapis.com/auth/userinfo.email',
+      'https://www.googleapis.com/auth/userinfo.profile' ] },
+      {session:false}
+  ));
+
+  // GET /auth/google/callback
+  //   Use passport.authenticate() as route middleware to authenticate the
+  //   request.  If authentication fails, the user will be redirected back to the
+  //   login page.  Otherwise, the primary route function function will be called,
+  //   which, in this example, will redirect the user to the home page.
+  
+  app.get('/auth/google/callback', 
+    function(req, res) {
+      passport.authenticate(
+        'google',
+        {session:false},  
+        (error,user)=>{
+          if(error)
+          {
+            res.status(500).send({message:error.message||"Some error occurred while signing the user."})
+          }
+          if(!user){
+            res.status(400).send({
+              message: "Content can not be empty!",
+            });
+          }
+          else{
+          console.log("data inside Google Auth",user)
+          res.send(user);
+          }
+        }
+      )(req,res)
+    });
   //require('../controllers/user.controller')(passport)
   /*app.post("/signin", (req,res)=>{
     console.log(req.body.user.email)

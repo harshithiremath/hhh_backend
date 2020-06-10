@@ -1,4 +1,6 @@
 const User = require("../models/user.model.js");
+const GoogleStrategy = require('passport-google-oauth2').Strategy;
+const passport=require('passport');
 //const LocalStrategy=require('passport-local').Strategy;
 
 // Create and Save a new uer
@@ -60,6 +62,39 @@ exports.verify = (req, res) => {
     }
   });
 };
+exports.googleverify=function(passport){
+  passport.use(new GoogleStrategy({
+    clientID: '785266713842-kokoj9knau3fv5278vec88a43nq365kd.apps.googleusercontent.com',
+    clientSecret: 'FyFJ41RWuHYPctp4XeBG-_NJ',
+    callbackURL: "http://localhost:5000/auth/google/callback",
+    passReqToCallback: true
+  },
+  function(req,accessToken, refreshToken, profile, done) {
+    if (!req.body) {
+      res.status(400).send({
+        message: "Content can not be empty!",
+      });
+    }
+    console.log(profile)
+    const user = new User({
+      email:profile.email,
+      first_name: profile.given_name,
+      last_name: profile.family_name,
+      password: profile.id
+    });
+    console.log(user)
+    User.findOrCreate(user,(err,data)=>{
+      if(err){ 
+        return done(err);
+      }
+      else{
+        console.log(data)
+        return done(null,data);
+      }
+    });
+  })
+  );
+}
 /*
 module.exports=function(passport){
   

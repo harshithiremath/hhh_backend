@@ -13,7 +13,6 @@ User.create = async (newUser, result) => {
   const passwordd=newUser.password;
   const hashCost=10;
   newUser.password=await bcrypt.hash(passwordd,hashCost);
-  console.log(newUser)
   sql.query(
     `SELECT * FROM users WHERE email= '${newUser.email}'`,
     (err, res) => {
@@ -55,7 +54,7 @@ User.verify = (checkUser, result) => {
       const passwordsMatch =await bcrypt.compare(checkUser.password,res[0].password)
       if (passwordsMatch) {
         console.log("signed in: ", { id: res[0].user_id });
-      result(null, { done: true, id: res[0].user_id,email:res[0].email /*, token: jwttoken*/ });
+      result(null, { done: true, id: res[0].user_id,email:res[0].email });
       } 
       else {
         result(null, { done: false });
@@ -71,4 +70,45 @@ User.verify = (checkUser, result) => {
     }
   });
 };
+User.findOrCreate=(gUser,result)=>{
+  sql.query(
+    `SELECT * FROM users WHERE email= '${gUser.email}'`,
+    (err, res) => {
+      if (err) {
+        console.log("error:", err);
+        result(err, null);
+        return;
+      }
+      if (res.length) {
+        console.log("Users credentials already present in database");
+        result(null, { done: true, id: res[0].user_id,email:res[0].email });
+        return;
+      } 
+      else if (!res.length) {
+        sql.query("INSERT INTO users SET ?", gUser, (err, res) => {
+          if (err) {
+            console.log("error: ", err);
+            result(err, null);
+            return;
+          }
+          console.log(res)
+          console.log("created user: ", { id: res.insertId });
+        });
+        sql.query(
+          `SELECT * FROM users WHERE email= '${gUser.email}'`,
+          (err, res) => {
+            if (err) {
+              console.log("error:", err);
+              result(err, null);
+              return;
+            }
+            if (res.length) {
+              result(null, { done: true, id: res[0].user_id,email:res[0].email});
+              return;
+            }    
+        });
+      }
+    }
+  )
+}
 module.exports = User;
