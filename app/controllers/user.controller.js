@@ -1,7 +1,6 @@
 const User = require("../models/user.model.js");
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
-const passport=require('passport');
-//const LocalStrategy=require('passport-local').Strategy;
+const SpotifyStrategy = require('passport-spotify').Strategy;
 
 // Create and Save a new uer
 
@@ -62,7 +61,7 @@ exports.verify = (req, res) => {
     }
   });
 };
-exports.googleverify=function(passport){
+exports.oauth=function(passport){
   passport.use(new GoogleStrategy({
     clientID: '785266713842-kokoj9knau3fv5278vec88a43nq365kd.apps.googleusercontent.com',
     clientSecret: 'FyFJ41RWuHYPctp4XeBG-_NJ',
@@ -71,9 +70,7 @@ exports.googleverify=function(passport){
   },
   function(req,accessToken, refreshToken, profile, done) {
     if (!req.body) {
-      res.status(400).send({
-        message: "Content can not be empty!",
-      });
+      return done(null,null);
     }
     console.log(profile)
     const user = new User({
@@ -82,7 +79,6 @@ exports.googleverify=function(passport){
       last_name: profile.family_name,
       password: profile.id
     });
-    console.log(user)
     User.findOrCreate(user,(err,data)=>{
       if(err){ 
         return done(err);
@@ -94,22 +90,26 @@ exports.googleverify=function(passport){
     });
   })
   );
-}
-/*
-module.exports=function(passport){
-  
+
   passport.use(
-    new LocalStrategy({
-      usernameField: 'user[email]',
-    passwordField: 'user[password]'
-    },
-    (username,password,done)=>{
-      console.log("u",username)  
-      const user = new User({
-        email:username,
-        password: password,
-      });
-        User.verify(user,(err,data)=>{
+    new SpotifyStrategy(
+      {
+        clientID: '18492d14007643b392447cac79031754',
+        clientSecret: '5d2175a2c4984488b2171960deda0cdc',
+        callbackURL: 'http://localhost:5000/auth/spotify/callback',
+        passReqToCallback: true
+      },
+      function(req,accessToken, refreshToken, expires_in, profile, done) {
+        if (!req.body) {
+          return done(null,null);
+        }
+        const user = new User({
+          email:profile.emails[0].value,
+          first_name: profile.username,
+          last_name: profile.displayName,
+          password: profile.id
+        });
+        User.findOrCreate(user,(err,data)=>{
           if(err){ 
             return done(err);
           }
@@ -118,6 +118,7 @@ module.exports=function(passport){
             return done(null,data);
           }
         });
-    }));
-};
-  */
+      }
+    )
+  );
+}
