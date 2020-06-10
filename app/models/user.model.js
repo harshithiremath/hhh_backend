@@ -8,7 +8,10 @@ const User = function (user) {
   this.password = user.password;
 };
 
-User.create = (newUser, result) => {
+User.create = async (newUser, result) => {
+  const passwordd=newUser.password;
+  const hashCost=10;
+  newUser.password=await bcrypt.hash(passwordd,hashCost);
   sql.query(
     `SELECT * FROM users WHERE email= '${newUser.email}'`,
     (err, res) => {
@@ -30,7 +33,7 @@ User.create = (newUser, result) => {
           }
 
           console.log("created user: ", { id: res.insertId });
-          result(null, { id: res.insertId, first_name: newUser.first_name });
+          result(null, { message:"User added to database"});
         });
       }
     }
@@ -39,20 +42,21 @@ User.create = (newUser, result) => {
 
 User.verify = (checkUser, result) => {
   let email = checkUser.email;
-  sql.query(`SELECT * FROM users where email = '${email}'`, (err, res) => {
+  sql.query(`SELECT * FROM hhh.users where email = '${email}'`,(err, res) => {
     if (err) {
-      // console.log("error", err);
+       //console.log("error", err);
       result(err, { done: false });
       return;
     }
-    if (res.length == 1) {
+    if (res.length) {
       if (res[0].password === checkUser.password) {
         console.log("signed in: ", { id: res[0].user_id });
-        result(null, { done: true, id: res[0].user_id, email: email });
+      result(null, { done: true, id: res[0].user_id,email:res[0].email /*, token: jwttoken*/ });
       } else {
         result(null, { done: false });
       }
-    } else {
+    } 
+    else {
       result(null, { done: false });
     }
   });

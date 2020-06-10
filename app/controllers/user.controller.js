@@ -1,6 +1,8 @@
 const User = require("../models/user.model.js");
+const LocalStrategy=require('passport-local').Strategy;
 
 // Create and Save a new uer
+/*
 exports.create = (req, res) => {
   if (!req.body) {
     res.status(400).send({
@@ -35,6 +37,32 @@ exports.create = (req, res) => {
     }
   });
 };
+*/
+module.exports=function(passport){
+  
+  passport.use(
+    new LocalStrategy({
+      usernameField: 'user[email]',
+    passwordField: 'user[password]'
+    },
+    (username,password,done)=>{
+      console.log("u",username)  
+      const user = new User({
+        email:username,
+        password: password,
+      });
+        User.verify(user,(err,data)=>{
+          if(err){ 
+            return done(err);
+          }
+          else{
+            console.log(data)
+            return done(null,data);
+          }
+        });
+    }));
+};
+  /*
 exports.verify = (req, res) => {
   if (!req.body) {
     res.status(400).send({
@@ -56,3 +84,4 @@ exports.verify = (req, res) => {
     }
   });
 };
+*/
