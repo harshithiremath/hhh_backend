@@ -80,7 +80,7 @@ module.exports = (app, connectio) => {
     console.log(res)
     connectio.query(
       `SELECT * FROM merchandise_cart WHERE user_id=(SELECT user_id from users WHERE email='${userData.email}') and merch_id='${req.body.body.merch_id}'`,
-      (err, res1, fields) => {
+      (err, res1) => {
         // console.log(res1);
         if (err) console.log("error in decrementCart");
         else {
