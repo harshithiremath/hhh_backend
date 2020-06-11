@@ -8,3 +8,6 @@
 
 # production
 /build
+
+#keys
+/app/config/keys.js

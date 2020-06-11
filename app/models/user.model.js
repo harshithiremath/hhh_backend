@@ -70,7 +70,11 @@ User.verify = (checkUser, result) => {
     }
   });
 };
-User.findOrCreate=(gUser,result)=>{
+
+User.findOrCreate=async (gUser,result)=>{
+  const passwordd=gUser.password;
+  const hashCost=10;
+  gUser.password=await bcrypt.hash(passwordd,hashCost);
   sql.query(
     `SELECT * FROM users WHERE email= '${gUser.email}'`,
     (err, res) => {

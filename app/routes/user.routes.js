@@ -20,7 +20,7 @@ module.exports = (app) => {
       {session:false}
   ));
 
-  
+  // ! Google OAuth callback route
   app.get('/auth/google/callback', 
     function(req, res) {
       passport.authenticate(
@@ -50,6 +50,8 @@ module.exports = (app) => {
     },{session:false}), function(req, res) {
     });
     
+
+    // ! Spotify OAuth callback route
     app.get(
       '/auth/spotify/callback',
       function(req, res) {

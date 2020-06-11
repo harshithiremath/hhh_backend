@@ -1,4 +1,5 @@
-const stripe=require("stripe")("sk_test_51GqJIvEkPqBpQLilF1MKxPVKJwtC4DztasQrhoqY9BB89NMRhxxsYnJJEW8FPe4OreHqFrRq1xbylfPgwHRZ5AmE00zTOMudSs")
+const config=require("../config/keys")
+const stripe=require("stripe")(config.stripesecret)
 module.exports = (app, connection) => {
   // app.get("/singleTour", (req, res) => {
   //     const tour_id = req.query.tour_id;

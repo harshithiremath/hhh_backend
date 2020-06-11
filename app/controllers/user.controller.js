@@ -1,7 +1,8 @@
 const User = require("../models/user.model.js");
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
 const SpotifyStrategy = require('passport-spotify').Strategy;
-
+const jwt=require('jsonwebtoken');
+const config=require("../config/keys")
 // Create and Save a new uer
 
 exports.create = (req, res) => {
@@ -57,14 +58,35 @@ exports.verify = (req, res) => {
       });
     else {
       console.log("data in verify", data);
-      res.send(data);
+      if(data.done){
+        const token = jwt.sign(
+          {
+            id: data.id,
+            email:data.email
+          },
+          config.jwtsecret,
+          {
+             expiresIn: '24h' // expires in 24 hours
+          }
+        );
+      console.log("token:",token);
+      res.send({
+        "done":data.done,
+        "id":data.id,
+        "email":data.email,
+        "token":token
+       });
+      }
+      else{
+      res.send(data)
+      }
     }
   });
 };
 exports.oauth=function(passport){
   passport.use(new GoogleStrategy({
-    clientID: '785266713842-kokoj9knau3fv5278vec88a43nq365kd.apps.googleusercontent.com',
-    clientSecret: 'FyFJ41RWuHYPctp4XeBG-_NJ',
+    clientID: config.GoogleClientID,
+    clientSecret: config.GoogleClientSecret,
     callbackURL: "http://localhost:5000/auth/google/callback",
     passReqToCallback: true
   },
@@ -94,8 +116,8 @@ exports.oauth=function(passport){
   passport.use(
     new SpotifyStrategy(
       {
-        clientID: '18492d14007643b392447cac79031754',
-        clientSecret: '5d2175a2c4984488b2171960deda0cdc',
+        clientID: config.SpotifyClientID,
+        clientSecret: config.SpotifyClientSecret,
         callbackURL: 'http://localhost:5000/auth/spotify/callback',
         passReqToCallback: true
       },
