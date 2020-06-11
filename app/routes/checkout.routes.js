@@ -2,9 +2,6 @@ const checkToken=require("../middleware/authenticate")
 module.exports = (app, connection) => {
   app.post("/checkout/confirmMerch",checkToken, (req, res) => {
     const userData=req.userData;
-    // res.setTimeout(5000);
-    // res.setInterval(5000);
-    let user_id_email = req.body.user_id;
     let user_id = "";
     let cartTotal = 0; // ? Have
     // let wallet = 0; // ? Have
@@ -100,7 +97,6 @@ module.exports = (app, connection) => {
     const userData=req.userData;
     // console.log(req.body);
     // res.sendStatus(201); for error
-    let user_id_email = req.body.user_email;
     let user_id = "";
     // TODO First fetch the user_id
     connection.query(
@@ -167,7 +163,6 @@ app.post("/checkoutconfirmSingleMerch",checkToken, (req, res) => {
   console.log("called single merch Checkout");
   // console.log(req.body);
   // res.sendStatus(201); for error
-  let user_id_email = req.body.user_email;
   let user_id = "";
   // TODO First fetch the user_id
   connection.query(

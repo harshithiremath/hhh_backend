@@ -4,7 +4,6 @@ module.exports = (app, connection) => {
     // res.setTimeout(5000);
     // res.setInterval(5000);
     const userData=res.userData;
-    let user_id = req.body.user_id;
     let cartTotal = 0; // ? Have
     let wallet = 0; // ? Have
     let cart = {};
@@ -180,6 +179,4 @@ module.exports = (app, connection) => {
   // res.sendStatus(200)
 };
 
-// // res.json({
-// //     message: "Welcome to hhh test application."
-// // });
+

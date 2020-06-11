@@ -6,7 +6,6 @@ module.exports = (app, connection) => {
   // ! route
 
   app.get("/getWalletInfo",checkToken , (req, res) => {
-    console.log(req.body)
     const userData=req.userData;
     connection.query(
       `SELECT * FROM wallet WHERE user_id = (SELECT user_id FROM users WHERE email='${userData.email}')`,
@@ -25,7 +24,6 @@ module.exports = (app, connection) => {
 
   // ! route
   app.post("/rechargeWallet",checkToken, (req, res) => {
-    const user_email = req.body.user_email;
     const userData=req.userData;
     // TODO get user_id
     connection.query(
@@ -59,10 +57,9 @@ module.exports = (app, connection) => {
   });
   const postStripeCharge = (res,email) => (stripeErr, stripeRes) => {
     if (stripeErr) {
-      console.log("error in rechargeWallet");
+      console.log("error in rechargeWallet with stripe");
           res.sendStatus(201);
     } else {
-      console.log("Done")
       connection.query(
         `SELECT user_id FROM users WHERE email='${email}'`,
         (err, res1) => {
@@ -94,7 +91,6 @@ module.exports = (app, connection) => {
     }
   }
   app.post("/rechargeStripe",async (req,res)=>{
-    console.log("Request token:", req.body.token);
 
     let error;
     let status;
