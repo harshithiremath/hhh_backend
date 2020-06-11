@@ -2,6 +2,7 @@ const express = require("express");
 let cors = require("cors");
 const bodyParser = require("body-parser");
 const connection = require("./app/models/db.js");
+const checkToken=require("./app/middleware/authenticate")
 const app = express();
 
 app.use(cors());
@@ -79,13 +80,14 @@ app.get("/merch", (req, res) => {
 });
 
 //! route
-app.get("/orders", (req, res) => {
+app.get("/orders",checkToken, (req, res) => {
+  const userData=req.userData;
   const user = req.query.user;
   // console.log(req);
   console.log("user", user);
   // console.log(`SELECT * FROM users WHERE email='${user}'`);
   connection.query(
-    `SELECT * FROM users WHERE email='${user}'`,
+    `SELECT * FROM users WHERE email='${userData.email}'`,
     (err, used_res, fields) => {
       if (err) {
         res.send({
@@ -116,11 +118,12 @@ app.get("/orders", (req, res) => {
 });
 
 // ! route
-app.get("/bought_tickets", (req, res) => {
+app.get("/bought_tickets",checkToken, (req, res) => {
+  const userData=req.userData;
   const user = req.query.user;
   // console.log("user", user);
   connection.query(
-    `SELECT * FROM users WHERE email='${user}'`,
+    `SELECT * FROM users WHERE email='${userData.email}'`,
     (err, res1, fields) => {
       if (err) {
         res.send({

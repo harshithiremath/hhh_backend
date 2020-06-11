@@ -1,32 +1,15 @@
 const config=require("../config/keys")
 const stripe=require("stripe")(config.stripesecret)
+const checkToken=require("../middleware/authenticate")
 module.exports = (app, connection) => {
-  // app.get("/singleTour", (req, res) => {
-  //     const tour_id = req.query.tour_id;
-  //     // console.log("tour_id", tour_id);
-  //     connection.query(
-  //       `SELECT * FROM tours WHERE tour_id='${tour_id}'`,
-  //       (err, res1, fields) => {
-  //         if (err) {
-  //           res.send({
-  //             message: "error in singleTour get1"
-  //           });
-  //         } else {
-  //           res.send(res1);
-  //         }
-  //       }
-  //     );
-  //   });
 
   // ! route
 
-  app.get("/getWalletInfo", (req, res) => {
-    const user_id = req.query.user_id;
-    // console.log(
-    //   `SELECT * FROM wallet WHERE user_id = (SELECT user_id FROM users WHERE email='${user_id}')`
-    // );
+  app.get("/getWalletInfo",checkToken , (req, res) => {
+    console.log(req.body)
+    const userData=req.userData;
     connection.query(
-      `SELECT * FROM wallet WHERE user_id = (SELECT user_id FROM users WHERE email='${user_id}')`,
+      `SELECT * FROM wallet WHERE user_id = (SELECT user_id FROM users WHERE email='${userData.email}')`,
       (err, res1, fields) => {
         if (err) {
           console.log("error in query 1 of getWalletInfo");
@@ -41,12 +24,12 @@ module.exports = (app, connection) => {
   });
 
   // ! route
-  app.post("/rechargeWallet", (req, res) => {
+  app.post("/rechargeWallet",checkToken, (req, res) => {
     const user_email = req.body.user_email;
-
+    const userData=req.userData;
     // TODO get user_id
     connection.query(
-      `SELECT user_id FROM users WHERE email='${user_email}'`,
+      `SELECT user_id FROM users WHERE email='${userData.email}'`,
       (err, res1) => {
         if (err) {
           console.log("error in rechargeWallet 1");
@@ -111,11 +94,12 @@ module.exports = (app, connection) => {
     }
   }
   app.post("/rechargeStripe",async (req,res)=>{
-    console.log("Request :", req.body);
+    console.log("Request token:", req.body.token);
 
     let error;
     let status;
-    const { token } = req.body;
+    const token = req.body.token;
+    
     const customer = await stripe.customers.create({
       source: 'tok_visa',
       email: token.email

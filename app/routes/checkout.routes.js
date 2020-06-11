@@ -1,5 +1,7 @@
+const checkToken=require("../middleware/authenticate")
 module.exports = (app, connection) => {
-  app.post("/checkout/confirmMerch", (req, res) => {
+  app.post("/checkout/confirmMerch",checkToken, (req, res) => {
+    const userData=req.userData;
     // res.setTimeout(5000);
     // res.setInterval(5000);
     let user_id_email = req.body.user_id;
@@ -9,7 +11,7 @@ module.exports = (app, connection) => {
     // let cart = {};
     // TODO get user_id
     connection.query(
-      `SELECT user_id FROM users WHERE email='${user_id_email}'`,
+      `SELECT user_id FROM users WHERE email='${userData.email}'`,
       (err, res1) => {
         if (err) {
           console.log("error in merchCheckout1");
@@ -93,15 +95,16 @@ module.exports = (app, connection) => {
   // ! route
   // !
   // !
-  app.post("/checkoutconfirmTicket", (req, res) => {
+  app.post("/checkoutconfirmTicket",checkToken, (req, res) => {
     console.log("called ticket Checkout");
+    const userData=req.userData;
     // console.log(req.body);
     // res.sendStatus(201); for error
     let user_id_email = req.body.user_email;
     let user_id = "";
     // TODO First fetch the user_id
     connection.query(
-      `SELECT user_id FROM users WHERE email='${user_id_email}'`,
+      `SELECT user_id FROM users WHERE email='${userData.email}'`,
       (err, res1) => {
         if (err) {
           console.log("error in ticketcheckout 1");
@@ -159,7 +162,8 @@ module.exports = (app, connection) => {
 // // res.json({
 // //     message: "Welcome to hhh test application."
 // // });
-app.post("/checkoutconfirmSingleMerch", (req, res) => {
+app.post("/checkoutconfirmSingleMerch",checkToken, (req, res) => {
+  const userData=req.userData;
   console.log("called single merch Checkout");
   // console.log(req.body);
   // res.sendStatus(201); for error
@@ -167,7 +171,7 @@ app.post("/checkoutconfirmSingleMerch", (req, res) => {
   let user_id = "";
   // TODO First fetch the user_id
   connection.query(
-    `SELECT user_id FROM users WHERE email='${user_id_email}'`,
+    `SELECT user_id FROM users WHERE email='${userData.email}'`,
     (err, res1) => {
       if (err) {
         console.log("error in ticketcheckout 1");

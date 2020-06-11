@@ -1,7 +1,9 @@
+const checkToken=require("../middleware/authenticate")
 module.exports = (app, connection) => {
-  app.post("/checkout/confirmMerch", (req, res) => {
+  app.post("/checkout/confirmMerch",checkToken,(req, res) => {
     // res.setTimeout(5000);
     // res.setInterval(5000);
+    const userData=res.userData;
     let user_id = req.body.user_id;
     let cartTotal = 0; // ? Have
     let wallet = 0; // ? Have
@@ -10,7 +12,7 @@ module.exports = (app, connection) => {
 
     // getting the total cart worth
     connection.query(
-      `SELECT SUM(c.quantity*m.price) AS sum FROM merch m, users u, merchandise_cart c WHERE c.user_id=(SELECT user_id FROM users WHERE email='${user_id}') AND c.user_id=u.user_id AND c.merch_id=m.merch_id;`,
+      `SELECT SUM(c.quantity*m.price) AS sum FROM merch m, users u, merchandise_cart c WHERE c.user_id=(SELECT user_id FROM users WHERE email='${userData.email}') AND c.user_id=u.user_id AND c.merch_id=m.merch_id;`,
       (err, res1) => {
         if (err) {
           console.log("failed in merchCheckout1");
@@ -19,7 +21,7 @@ module.exports = (app, connection) => {
           cartTotal = res1[0].sum;
           // getting the wallet balance
           connection.query(
-            `SELECT balance FROM wallet WHERE user_id=(SELECT user_id FROM users WHERE email='${user_id}')`,
+            `SELECT balance FROM wallet WHERE user_id=(SELECT user_id FROM users WHERE email='${userData.email}')`,
             (err, res1) => {
               if (err) {
                 console.log("failed in merchCheckout2");
@@ -30,7 +32,7 @@ module.exports = (app, connection) => {
                 let deducted_balance = wallet - cartTotal;
                 // console.log("deducted balance", deducted_balance);
                 connection.query(
-                  `UPDATE wallet SET balance=${deducted_balance} WHERE user_id=(SELECT user_id FROM users WHERE email='${user_id}')`,
+                  `UPDATE wallet SET balance=${deducted_balance} WHERE user_id=(SELECT user_id FROM users WHERE email='${userData.email}')`,
                   (err, res1) => {
                     if (err) {
                       console.log("failed in merchCheckout3");
@@ -40,7 +42,7 @@ module.exports = (app, connection) => {
 
                       // getting cart contents
                       connection.query(
-                        `SELECT merch_id, quantity FROM merchandise_cart WHERE user_id=(SELECT user_id FROM users WHERE email='${user_id}')`,
+                        `SELECT merch_id, quantity FROM merchandise_cart WHERE user_id=(SELECT user_id FROM users WHERE email='${userData.email}')`,
                         (err, res1) => {
                           if (err) {
                             console.log("failed in merchCheckout4");
@@ -87,9 +89,9 @@ module.exports = (app, connection) => {
                                         } else {
                                           console.log("merch quantity updated");
 
-                                          // to get user_id using the email (the user_id)
+                                          // to get user_id using the email (the userData.email)
                                           connection.query(
-                                            `SELECT user_id from users WHERE email='${user_id}'`,
+                                            `SELECT user_id from users WHERE email='${userData.email}'`,
                                             (err, res4) => {
                                               if (err) {
                                                 console.log(

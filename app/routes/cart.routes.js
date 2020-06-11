@@ -57,6 +57,7 @@ module.exports = (app, connectio) => {
       );
     }
     if (data.message === "view") {
+      
       connectio.query(
         `SELECT m.merch_id, p.merch_limit, p.price AS individual_price, p.merch_name, p.image_url, m.quantity, p.price*m.quantity AS price
         FROM merch p, merchandise_cart m 
@@ -76,8 +77,8 @@ module.exports = (app, connectio) => {
 
   // ! route
 
-  app.post("/decrementCart", (req, res) => {
-    console.log(res)
+  app.post("/decrementCart",checkToken, (req, res) => {
+    const userData=req.userData
     connectio.query(
       `SELECT * FROM merchandise_cart WHERE user_id=(SELECT user_id from users WHERE email='${userData.email}') and merch_id='${req.body.body.merch_id}'`,
       (err, res1) => {
@@ -122,7 +123,8 @@ module.exports = (app, connectio) => {
   });
 
   // ! route
-  app.post("/incrementCart", (req, res) => {
+  app.post("/incrementCart",checkToken, (req, res) => {
+    const userData=res.userData
     connectio.query(
       `SELECT * FROM merchandise_cart c, merch m WHERE c.user_id=(SELECT user_id from users WHERE email='${userData.email}') and c.merch_id=${req.body.body.merch_id} and c.merch_id=m.merch_id`,
       (err, res1) => {
@@ -156,8 +158,8 @@ module.exports = (app, connectio) => {
   });
 
   // ! route
-  app.get("/getCartTotalPrice", (req, res) => {
-    let user_id = req.query.user_id;
+  app.get("/getCartTotalPrice", checkToken,(req, res) => {
+    const userData=req.userData
     // console.log(
     //   `SELECT SUM(c.quantity*m.price) FROM merch m, users u, merchandise_cart c WHERE c.user_id=(SELECT user_id FROM users WHERE email='${user_id}') AND c.merch_id=m.merch_id;`
     // );

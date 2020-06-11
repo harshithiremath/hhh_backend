@@ -2,6 +2,7 @@ let jwt = require('jsonwebtoken');
 const config = require('../config/keys');
 
 module.exports =(req, res, next) => {
+  
     // Autherization header schema => Bearer <JWT token>
   let token = req.headers.authorization.split(" ")[1]; 
 
