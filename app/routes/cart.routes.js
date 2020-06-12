@@ -124,7 +124,8 @@ module.exports = (app, connectio) => {
 
   // ! route
   app.post("/incrementCart",checkToken, (req, res) => {
-    const userData=res.userData
+    const userData=req.userData
+    console.log(userData)
     connectio.query(
       `SELECT * FROM merchandise_cart c, merch m WHERE c.user_id=(SELECT user_id from users WHERE email='${userData.email}') and c.merch_id=${req.body.body.merch_id} and c.merch_id=m.merch_id`,
       (err, res1) => {
