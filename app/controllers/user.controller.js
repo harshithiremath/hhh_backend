@@ -107,7 +107,26 @@ exports.oauth=function(passport){
       }
       else{
         console.log(data)
-        return done(null,data);
+        if(data.done){
+          const token = jwt.sign(
+            {
+              id: data.id,
+              email:data.email
+            },
+            config.jwtsecret,
+            {
+               expiresIn: '24h' // expires in 24 hours
+            }
+          );
+        console.log("token:",token);
+        return done(null,{
+          "done":data.done,
+          "id":data.id,
+          "email":data.email,
+          "token":token
+         });
+        }
+        else return(done,data)
       }
     });
   })
@@ -137,7 +156,26 @@ exports.oauth=function(passport){
           }
           else{
             console.log(data)
-            return done(null,data);
+            if(data.done){
+              const token = jwt.sign(
+                {
+                  id: data.id,
+                  email:data.email
+                },
+                config.jwtsecret,
+                {
+                   expiresIn: '24h' // expires in 24 hours
+                }
+              );
+            console.log("token:",token);
+            return done(null,{
+              "done":data.done,
+              "id":data.id,
+              "email":data.email,
+              "token":token
+             });
+            }
+            else return(done,data)
           }
         });
       }
