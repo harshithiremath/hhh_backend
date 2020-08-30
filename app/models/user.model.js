@@ -1,4 +1,5 @@
 const sql = require("./db");
+const bcrypt=require('bcrypt');
 
 const User = function (user) {
   this.first_name = user.first_name;
@@ -8,45 +9,110 @@ const User = function (user) {
   this.password = user.password;
 };
 
-User.create = (newUser, result) => {
-  sql.query("SELECT * FROM users WHERE email= ?",newUser.email,(err,res)=>{
-    if (err){
-      console.log('error:',err);
-      result(err,null);
-      return;
+User.create = async (newUser, result) => {
+  const passwordd=newUser.password;
+  const hashCost=10;
+  newUser.password=await bcrypt.hash(passwordd,hashCost);
+  sql.query(
+    `SELECT * FROM users WHERE email= '${newUser.email}'`,
+    (err, res) => {
+      if (err) {
+        console.log("error:", err);
+        result(err, null);
+        return;
+      }
+      if (res.length) {
+        console.log("Users credentials already present in database");
+        result({ message: "User present in database" }, null);
+        return;
+      } else if (!res.length) {
+        sql.query("INSERT INTO hhh.users SET ?", newUser, (err, res) => {
+          if (err) {
+            console.log("error: ", err);
+            result(err, null);
+            return;
+          }
+
+          console.log("created user: ", { id: res.insertId });
+          result(null, { message:"User added to database"});
+        });
+      }
     }
-    if (res.length){
-      console.log("Users credentials already present in database");
-      result({message:'User present in database'},null);
-      return;
-    }
-    else if(!res.length){  
-      sql.query("INSERT INTO users SET ?", newUser, (err, res) => {
-        if (err) {
-          console.log("error: ", err);
-          result(err, null);
-          return;
-        }
-      
-        console.log("created user: ", { id: res.insertId });
-        result(null, { id: res.insertId, first_name: newUser.first_name });
-      });
-    }
-  });
+  );
 };
 
 User.verify = (checkUser, result) => {
   let email = checkUser.email;
-  sql.query(`SELECT FROM users where email = ${email}`, (err, res) => {
+  sql.query(`SELECT * FROM hhh.users where email = '${email}'`,async (err, res) => {
     if (err) {
-      console.log("error", err);
-      result(err, null);
+       //console.log("error", err);
+      result(err, { done: false });
       return;
     }
-    if (res.password === checkUser.password) {
-      console.log("signed in: ", { id: res.user_id });
-      result(null, { id: res.user_id, email: email });
+    if (res.length) {
+      try{
+      const passwordsMatch =await bcrypt.compare(checkUser.password,res[0].password)
+      if (passwordsMatch) {
+        console.log("signed in: ", { id: res[0].user_id });
+      result(null, { done: true, id: res[0].user_id,email:res[0].email });
+      } 
+      else {
+        result(null, { done: false });
+      }
+      }
+      catch(error){
+        console.log("error",error)
+        result(error,{ done: false});
+      } 
+    } 
+    else {
+      result(null, { done: false });
     }
   });
 };
+
+User.findOrCreate=async (gUser,result)=>{
+  const passwordd=gUser.password;
+  const hashCost=10;
+  gUser.password=await bcrypt.hash(passwordd,hashCost);
+  sql.query(
+    `SELECT * FROM users WHERE email= '${gUser.email}'`,
+    (err, res) => {
+      if (err) {
+        console.log("error:", err);
+        result(err, null);
+        return;
+      }
+      if (res.length) {
+        console.log("Users credentials already present in database");
+        result(null, { done: true, id: res[0].user_id,email:res[0].email });
+        return;
+      } 
+      else if (!res.length) {
+        sql.query("INSERT INTO users SET ?", gUser, (err, res) => {
+          if (err) {
+            console.log("error: ", err);
+            result(err, null);
+            return;
+          }
+          console.log(res)
+          console.log("created user: ", { id: res.insertId });
+        });
+        sql.query(
+          `SELECT * FROM users WHERE email= '${gUser.email}'`,
+          (err, res) => {
+            if (err) {
+              console.log("error:", err);
+              result(err, null);
+              return;
+            }
+            if (res.length) {
+              result(null, { done: true, id: res[0].user_id,email:res[0].email});
+              return;
+            }    
+        });
+      }
+    }
+  )
+}
 module.exports = User;
