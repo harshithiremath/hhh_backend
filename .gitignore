@@ -2,7 +2,7 @@
 /node_modules
 
 # db pass
-/app/config/db.config.js
+app/config/db.config.js
 
 # front-end folder
 /hhh
