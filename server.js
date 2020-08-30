@@ -93,7 +93,7 @@ app.get("/orders", checkToken, (req, res) => {
           `SELECT * FROM merchandise_order WHERE user_id='${used_res[0].user_id}'`
         );
         connection.query(
-          `SELECT * FROM merchandise_order WHERE user_id='${used_res[0].user_id}'`,
+          `SELECT * FROM merchandise_order WHERE user_id='${used_res[0].user_id}' ORDER BY time_purchased DESC`,
           function (err, results, fields) {
             if (err) {
               res.send({
@@ -125,7 +125,7 @@ app.get("/bought_tickets", checkToken, (req, res) => {
         res.send({});
       } else {
         connection.query(
-          `SELECT * FROM ticket_purchase WHERE user_id='${res1[0].user_id}'`,
+          `SELECT * FROM ticket_purchase WHERE user_id='${res1[0].user_id}' ORDER BY time_purchased DESC`,
           (err, results, fields) => {
             if (err) {
               res.send({
