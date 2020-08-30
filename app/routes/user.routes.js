@@ -21,12 +21,11 @@ module.exports = (app) => {
   ));
 
   // ! Google OAuth callback route
-  app.get('/auth/google/callback', 
-    function(req, res) {
+  app.get('/auth/google/callback',function(req, res) {
       passport.authenticate(
         'google',
         {session:false},  
-        (error,user)=>{
+        (error,user)=>{         
           if(error)
           {
             res.status(500).send({message:error.message||"Some error occurred while signing the user."})
@@ -38,44 +37,45 @@ module.exports = (app) => {
           }
           else{
           console.log("data inside Google OAuth",user)
-          res.send(user);
+          res.set('token', user.token)
+          res.redirect('http://localhost:3000/google')
           }
         }
       )(req,res)
     });
-
-    // ! Spotify OAuth route
-    app.get('/auth/spotify',passport.authenticate('spotify', {
-    scope: ['user-read-email']
-    },{session:false}), function(req, res) {
-    });
-    
-
-    // ! Spotify OAuth callback route
-    app.get(
-      '/auth/spotify/callback',
-      function(req, res) {
-        passport.authenticate(
-          'spotify',
-          {session:false},  
-          (error,user)=>{
-            if(error)
-            {
-              res.status(500).send({message:error.message||"Some error occurred while signing the user."})
-            }
-            if(!user){
-              res.status(400).send({
-                message: "Content can not be empty!",
-              });
-            }
-            else{
-            console.log("data inside Spotify OAuth",user)
-            res.send(user);
-            }
-          }
-        )(req,res)
-      }
-    );
+//
+//   // ! Spotify OAuth route
+//    app.get('/auth/spotify',passport.authenticate('spotify', {
+//    scope: ['user-read-email']
+//    },{session:false}), function(req, res) {
+//    });
+//    
+//
+ //   // ! Spotify OAuth callback route
+ //   app.get(
+ //     '/auth/spotify/callback',
+ //     function(req, res) {
+ //       passport.authenticate(
+ //         'spotify',
+ //         {session:false},  
+ //         (error,user)=>{
+ //           if(error)
+ //           {
+ //             res.status(500).send({message:error.message||"Some error occurred while signing the user."})
+ //           }
+ //           if(!user){
+ //             res.status(400).send({
+ //               message: "Content can not be empty!",
+ //             });
+ //           }
+ //           else{
+ //           console.log("data inside Spotify OAuth",user)
+ //           res.send(user);
+ //           }
+ //         }
+ //       )(req,res)
+ //     }
+ //   );
   // Retrieve all Users
   //app.get("users", users.findAll);
 
