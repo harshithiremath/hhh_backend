@@ -1,14 +1,13 @@
-const config=require("../config/keys")
-const stripe=require("stripe")(config.stripesecret)
-const checkToken=require("../middleware/authenticate")
+const config = require("../config/keys");
+const stripe = require("stripe")(config.stripesecret);
+const checkToken = require("../middleware/authenticate");
 module.exports = (app, connection) => {
-
   // ! route
 
-  app.get("/getWalletInfo",checkToken , (req, res) => {
-    const userData=req.userData;
+  app.get("/getWalletInfo", checkToken, (req, res) => {
+    const userData = req.userData;
     connection.query(
-      `SELECT * FROM wallet WHERE user_id = (SELECT user_id FROM users WHERE email='${userData.email}')`,
+      `SELECT * FROM wallet w, users u WHERE w.user_id = u.user_id AND u.email='${userData.email}'`,
       (err, res1, fields) => {
         if (err) {
           console.log("error in query 1 of getWalletInfo");
@@ -16,15 +15,34 @@ module.exports = (app, connection) => {
             message: "error in query 1 of getWalletInfo",
           });
         } else {
-          res.send(res1);
+          // console.log(res1);
+          let {
+            balance,
+            email,
+            expiry,
+            user_id,
+            wallet_id,
+            first_name,
+          } = res1[0];
+          let sendingObject = {
+            balance,
+            email,
+            expiry,
+            user_id,
+            wallet_id,
+            first_name,
+            email: res1[0].email,
+          };
+          res.send(sendingObject);
+          // console.log(sendingObject);
         }
       }
     );
   });
 
   // ! route
-  app.post("/rechargeWallet",checkToken, (req, res) => {
-    const userData=req.userData;
+  app.post("/rechargeWallet", checkToken, (req, res) => {
+    const userData = req.userData;
     // TODO get user_id
     connection.query(
       `SELECT user_id FROM users WHERE email='${userData.email}'`,
@@ -55,10 +73,10 @@ module.exports = (app, connection) => {
       }
     );
   });
-  const postStripeCharge = (res,email) => (stripeErr, stripeRes) => {
+  const postStripeCharge = (res, email, amount) => (stripeErr, stripeRes) => {
     if (stripeErr) {
       console.log("error in rechargeWallet with stripe");
-          res.sendStatus(201);
+      res.sendStatus(201);
     } else {
       connection.query(
         `SELECT user_id FROM users WHERE email='${email}'`,
@@ -74,7 +92,7 @@ module.exports = (app, connection) => {
             //   `UPDATE wallet SET balance=balance+${req.body.amount}, expiry=DATE_ADD(expiry, INTERVAL 2 MONTH) WHERE user_id=${user_id}`
             // );
             connection.query(
-              `UPDATE wallet SET balance=balance+${1000}, expiry=DATE_ADD(expiry, INTERVAL 2 MONTH) WHERE user_id=${user_id}`,
+              `UPDATE wallet SET balance=balance+${amount}, expiry=DATE_ADD(expiry, INTERVAL 2 MONTH) WHERE user_id=${user_id}`,
               (err, res2) => {
                 if (err) {
                   console.log("error in rechargeWallet 2");
@@ -89,69 +107,26 @@ module.exports = (app, connection) => {
         }
       );
     }
-  }
-  app.post("/rechargeStripe1000",async (req,res)=>{
-
+  };
+  app.post("/rechargeStripe", async (req, res) => {
     let error;
     let status;
     const token = req.body.token;
-    
+    const amount = req.body.amount;
+
     const customer = await stripe.customers.create({
-      source: 'tok_visa',
-      email: token.email
+      source: "tok_visa",
+      email: token.email,
     });
 
     const charge = await stripe.charges.create(
       {
-        amount: 1000 * 100,
+        amount: amount * 100,
         currency: "INR",
         customer: customer.id,
-        description: `Added to 1000 walllet`,
+        description: `Added to ${amount} walllet`,
       },
-      postStripeCharge(res,token.email)
+      postStripeCharge(res, token.email, amount)
     );
-  })
-  app.post("/rechargeStripe5000",async (req,res)=>{
-
-    let error;
-    let status;
-    const token = req.body.token;
-    
-    const customer = await stripe.customers.create({
-      source: 'tok_visa',
-      email: token.email
-    });
-
-    const charge = await stripe.charges.create(
-      {
-        amount: 5000 * 100,
-        currency: "INR",
-        customer: customer.id,
-        description: `Added 5000 to walllet`,
-      },
-      postStripeCharge(res,token.email)
-    );
-  })
-  app.post("/rechargeStripe10000",async (req,res)=>{
-
-    let error;
-    let status;
-    const token = req.body.token;
-    
-    const customer = await stripe.customers.create({
-      source: 'tok_visa',
-      email: token.email
-    });
-
-    const charge = await stripe.charges.create(
-      {
-        amount: 10000 * 100,
-        currency: "INR",
-        customer: customer.id,
-        description: `Added 10,000 to walllet`,
-      },
-      postStripeCharge(res,token.email)
-    );
-  })
-
+  });
 };
