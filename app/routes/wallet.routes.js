@@ -90,7 +90,7 @@ module.exports = (app, connection) => {
       );
     }
   }
-  app.post("/rechargeStripe",async (req,res)=>{
+  app.post("/rechargeStripe1000",async (req,res)=>{
 
     let error;
     let status;
@@ -106,9 +106,52 @@ module.exports = (app, connection) => {
         amount: 1000 * 100,
         currency: "INR",
         customer: customer.id,
-        description: `Added to walllet`,
+        description: `Added to 1000 walllet`,
       },
       postStripeCharge(res,token.email)
     );
   })
+  app.post("/rechargeStripe5000",async (req,res)=>{
+
+    let error;
+    let status;
+    const token = req.body.token;
+    
+    const customer = await stripe.customers.create({
+      source: 'tok_visa',
+      email: token.email
+    });
+
+    const charge = await stripe.charges.create(
+      {
+        amount: 5000 * 100,
+        currency: "INR",
+        customer: customer.id,
+        description: `Added 5000 to walllet`,
+      },
+      postStripeCharge(res,token.email)
+    );
+  })
+  app.post("/rechargeStripe10000",async (req,res)=>{
+
+    let error;
+    let status;
+    const token = req.body.token;
+    
+    const customer = await stripe.customers.create({
+      source: 'tok_visa',
+      email: token.email
+    });
+
+    const charge = await stripe.charges.create(
+      {
+        amount: 10000 * 100,
+        currency: "INR",
+        customer: customer.id,
+        description: `Added 10,000 to walllet`,
+      },
+      postStripeCharge(res,token.email)
+    );
+  })
+
 };
