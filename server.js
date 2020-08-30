@@ -5,6 +5,7 @@ const connection = require("./app/models/db.js");
 const checkToken=require("./app/middleware/authenticate")
 const app = express();
 
+
 app.use(cors());
 // parse requests of content-type: application/json
 app.use(bodyParser.json());
