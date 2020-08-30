@@ -2,30 +2,17 @@ const express = require("express");
 let cors = require("cors");
 const bodyParser = require("body-parser");
 const connection = require("./app/models/db.js");
-const checkToken=require("./app/middleware/authenticate")
+const checkToken = require("./app/middleware/authenticate");
 const app = express();
-
 
 app.use(cors());
 // parse requests of content-type: application/json
 app.use(bodyParser.json());
 
 // parse requests of content-type: application/x-www-form-urlencoded
-<<<<<<< HEAD
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // !!!! route
-=======
-app.use(
-  bodyParser.urlencoded({
-    extended: true,
-  })
-);
-app.use(bodyParser.urlencoded({ extended: true }));
-app.get("/hhh", (req, res) => {
-  res.send("Welcome to HHH website ");
-});
->>>>>>> a5c8199d88e166ff177a7b2bb16b6fccfc9a4561
 app.get("/", (req, res) => {
   res.json({
     message: "Welcome to hhh test application.",
@@ -35,9 +22,6 @@ app.get("/", (req, res) => {
 require("./app/routes/user.routes.js")(app);
 // require("./app/routes/tour.routes")(app);
 
-<<<<<<< HEAD
-// !!!! route
-=======
 require("./app/routes/cart.routes.js")(app, connection);
 
 require("./app/routes/checkout.routes.js")(app, connection);
@@ -45,7 +29,6 @@ require("./app/routes/checkout.routes.js")(app, connection);
 require("./app/routes/wallet.routes.js")(app, connection);
 
 //! route
->>>>>>> a5c8199d88e166ff177a7b2bb16b6fccfc9a4561
 app.get("/tours", (req, res) => {
   connection.query("SELECT * FROM tours", function (err, results, fields) {
     if (err) {
@@ -58,32 +41,20 @@ app.get("/tours", (req, res) => {
   });
 });
 
-<<<<<<< HEAD
 // !!!! route
 app.get("/merch", (req, res) => {
   // todo This route is used both by for getting the details of all the merchandise
   // todo and of a single merchandise whose merch_id is passed in query object of HTTP GET request
   // // console.log(req);
-=======
-//! route
-app.get("/merch", (req, res) => {
-  //! This route is used both for getting the details of all the merchandise
-  //! and of a single merchandise whose merch_id is passed in query object of HTTP GET request
-  // console.log(req);
->>>>>>> a5c8199d88e166ff177a7b2bb16b6fccfc9a4561
   if (Object.keys(req.query).length != 0) {
     const merch_id = req.query.merch_id;
     connection.query(
       `SELECT * FROM merch WHERE merch_id='${merch_id}'`,
       function (err, results, fields) {
         if (err) {
-<<<<<<< HEAD
-          res.send({ message: "error in query for individual merch" });
-=======
           res.send({
             message: "error in query for individual merch",
           });
->>>>>>> a5c8199d88e166ff177a7b2bb16b6fccfc9a4561
         } else {
           res.send(results);
         }
@@ -92,13 +63,7 @@ app.get("/merch", (req, res) => {
   } else {
     connection.query("SELECT * FROM merch", function (err, results, fields) {
       if (err) {
-<<<<<<< HEAD
         res.send({ message: "error in query" });
-=======
-        res.send({
-          message: "error in query",
-        });
->>>>>>> a5c8199d88e166ff177a7b2bb16b6fccfc9a4561
       } else {
         res.send(results);
       }
@@ -106,42 +71,13 @@ app.get("/merch", (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-// !!!! route
-app.get("/orders", (req, res) => {
-=======
 //! route
-app.get("/orders",checkToken, (req, res) => {
-  const userData=req.userData;
->>>>>>> a5c8199d88e166ff177a7b2bb16b6fccfc9a4561
+app.get("/orders", checkToken, (req, res) => {
+  const userData = req.userData;
   const user = req.query.user;
   // console.log(req);
   console.log("user", user);
   // console.log(`SELECT * FROM users WHERE email='${user}'`);
-<<<<<<< HEAD
-  connection.query(`SELECT * FROM users WHERE email='${user}'`, function (
-    err,
-    useless_res,
-    fields
-  ) {
-    if (err) {
-      res.send({ message: "error in query1" });
-    } else {
-      // console.log(useless_res[0].user_id);
-      console.log(
-        `SELECT * FROM merchandise_order WHERE user_id='${useless_res[0].user_id}'`
-      );
-      connection.query(
-        `SELECT * FROM merchandise_order WHERE user_id='${useless_res[0].user_id}'`,
-        function (err, results, fields) {
-          if (err) {
-            res.send({ message: "error in query2" });
-          } else {
-            res.send(results);
-          }
-        }
-      );
-=======
   connection.query(
     `SELECT * FROM users WHERE email='${userData.email}'`,
     (err, used_res, fields) => {
@@ -169,16 +105,13 @@ app.get("/orders",checkToken, (req, res) => {
           }
         );
       }
->>>>>>> a5c8199d88e166ff177a7b2bb16b6fccfc9a4561
     }
   );
 });
 
-<<<<<<< HEAD
-=======
 // ! route
-app.get("/bought_tickets",checkToken, (req, res) => {
-  const userData=req.userData;
+app.get("/bought_tickets", checkToken, (req, res) => {
+  const userData = req.userData;
   const user = req.query.user;
   // console.log("user", user);
   connection.query(
@@ -394,7 +327,6 @@ app.post("/wallet", (req, res) => {
   );
 });
 
->>>>>>> a5c8199d88e166ff177a7b2bb16b6fccfc9a4561
 app.listen(5000, () => {
   console.log("Server is running on port 5000.");
 });
