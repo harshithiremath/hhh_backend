@@ -12,3 +12,4 @@
 
 #keys
 /app/config/keys.js
+app/config/db.config.js
